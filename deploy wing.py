@@ -62,6 +62,18 @@ def rhof(Altf):
     rho1 = P1 / (R * T1)
     return P1, rho1, T1
 
+
+# Compute induced drag increase due to Mach number
+def get_Mach_dependent_drag(M):
+    if M < 0.8:
+        return 0
+    elif M < 1.0:
+        return 3 * (M - 0.8)**2  # Increase factor  trans sonic
+    else:
+        return 10.0 * (M - 1)**2  # Increase factor supersonic
+
+
+
 # Initial conditions
 V = 200  # Initial velocity, m/s
 t = 0.0
@@ -109,6 +121,14 @@ while Alt > 0 and V > 0:
     L = C_L * q * S
     C_Dinduced = C_L ** 2 / (np.pi * e * Ar)
     C_Dtotal = C_d0 + C_Dinduced + C_Dbody
+
+    gamma_air = 1.4
+    R = 287.05
+    a = np.sqrt(gamma_air * R * T)
+    M = V / a #Mach number
+
+    C_Dtotal += get_Mach_dependent_drag(M)
+
     D = C_Dtotal * q * S
 
     # Compute flight path angle gamma
@@ -131,12 +151,6 @@ while Alt > 0 and V > 0:
     distance += V_H * dt
     Alt += V_v * dt  # V_v is negative, so Alt decreases
     Alt = max(Alt, 0)  # Prevent negative altitude
-
-    # Compute Mach number
-    gamma_air = 1.4
-    R = 287.05  # Specific gas constant for dry air (J/(kg·K))
-    a = np.sqrt(gamma_air * R * T)  # Speed of sound at current altitude
-    M = V / a  # Mach number
 
     # Load factor
     n = L / W
@@ -235,5 +249,9 @@ if len(distancearr) > 0:
 
 
     print('Landing airspeed:', Varray[-1], 'm/s')
+
+    print('C_induced: ', C_Dinduced)
+
+    print('C_total' , C_Dtotal)
 else:
     print("Simulation did not produce any data.")
