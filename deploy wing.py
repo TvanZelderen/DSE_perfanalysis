@@ -79,6 +79,9 @@ V = 200  # Initial velocity, m/s
 t = 0.0
 dt = 0.1
 Alt = 26600.0  # Initial altitude, m
+gamma = 0.0
+gammedot = 0.0
+
 
 Altarray = []
 distancearr = []
@@ -131,9 +134,10 @@ while Alt > 0 and V > 0:
 
     D = C_Dtotal * q * S
 
+    #gamma_dot = (L - W) / (m * V)
+
     # Compute flight path angle gamma
-    gamma = np.arcsin((W - L) / (m * g))
-    gamma = -abs(gamma)  # Ensure descent
+    #gamma += gamma_dot * dt
 
     # Compute accelerations
     Vdot = (-D - W * np.sin(gamma)) / m
@@ -143,7 +147,7 @@ while Alt > 0 and V > 0:
     V += Vdot * dt
     V = max(V, 0)  # Prevent negative velocity
     gamma += gammadot * dt
-
+    gamma = -abs(gamma)
     # Update position
     V_H = V * np.cos(gamma)
     V_v = V * np.sin(gamma)
@@ -253,5 +257,11 @@ if len(distancearr) > 0:
     print('C_induced: ', C_Dinduced)
 
     print('C_total' , C_Dtotal)
+
+    print( 'V vert lanidng: ' , np.abs( Varray[-1] * np.cos(gammaarray[-1])))
+
+    print( gamma)
+
+
 else:
     print("Simulation did not produce any data.")
