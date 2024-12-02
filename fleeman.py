@@ -62,7 +62,7 @@ def fleeman_drag(
     c_d0_body_friction = (
         0.031 * (length / diameter) * (mach / (dyn_pressure * length)) ** 0.2
     )
-    c_d0_body_wave = (1.586 + 1.839 * mach * (-2))(
+    c_d0_body_wave = (1.586 + 1.839 * mach ** (-2)) * (
         atan(diameter / (2 * length))
     ) * 1.69 * (frontal_area - pi * (d_nosetip / 2) ** 2) / frontal_area + (
         1.057 + 1.217 * mach ** (-2)
@@ -81,3 +81,7 @@ def fleeman_drag(
         + c_d0_body_wave
         + c_d0_body_boattail
     )
+
+
+if __name__ == "__main__":
+    print(fleeman_drag())
