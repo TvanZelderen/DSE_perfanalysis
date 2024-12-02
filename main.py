@@ -7,10 +7,12 @@ from physics_alpha import calculate_velocity_pitch, calculate_velocity_yaw
 
 # Initialize vehicles
 landers = [
-    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=0),
-    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=28),
-    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=22),
-    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=222),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=0, energy_turn=False),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=62.3, energy_turn=True),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=62.3, energy_turn=True, fin_area=0.03),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=111, energy_turn=True),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=216, energy_turn=True),
+    ReturnModule(altitude=27000, downrange=16000, velocity=200, detach_delay=10, engine_thrust=250, energy_turn=False),
 ]
 
 # Simulation parameters
@@ -86,8 +88,8 @@ def simulate_and_plot_landers(i, lander):
         if altitude <= 0:
             lander.landed = True
 
-    if sqrt(lander.position[0]**2 + lander.position[1]**2) <= 500:
-        print(f"Lander {i+1} has landed at {downrange:.2f} meters downrange, with a delta_v of {delta_v:.2f}. Time: {time:.2f} seconds.")
+    # if sqrt(lander.position[0]**2 + lander.position[1]**2) <= 500:
+    print(f"Lander {i+1} has landed at {downrange:.2f} meters downrange, with a delta_v of {delta_v:.2f} || {delta_v*1.15:.2f}. Time: {time:.2f} seconds.")
         
     
     simulation_data.append(data)

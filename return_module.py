@@ -12,14 +12,15 @@ class ReturnModule:
         engine_thrust=0,
         wing_area=0.01,
         fin_area=0.02,
-        reference_diameter=0.25,
+        c_l = 0.877,
+        c_d = 0.5,
+        reference_diameter=0.29,
         parachute_deployment_time=1,
         drogue_area=0.2,
         drogue_deployment_altitude=1500,
         parachute_area=0.8,
         parachute_deployment_altitude=500,
         energy_turn = False,
-        max_l_over_d=1.5
     ):
         # Translation properties
         self.position = [downrange, 0, altitude]  # x, y, z in meters
@@ -36,7 +37,7 @@ class ReturnModule:
 
         # Aerodynamic properties
         self.drag_coefficient = 0.5
-        self.lift_coefficient = 0.1
+        self.lift_coefficient = 0.0
         self.drogue_area = drogue_area  # m²
         self.parachute_area = parachute_area  # m²
         self.wing_area = wing_area # m²
@@ -55,7 +56,7 @@ class ReturnModule:
         self.parachute_deployment_progress = 0
 
         self.energy_turn = energy_turn
-        self.max_l_over_d = max_l_over_d
+        self.max_l_over_d = (c_l * fin_area) / (c_d * self.reference_area)
 
         self.detached = False
         self.drogue_deployed = False

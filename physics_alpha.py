@@ -1,5 +1,11 @@
 from math import sqrt, exp, pi, atan2, cos, sin, tan, radians, acos
 
+def body_to_earth_frame(body_frame_vector, orientation):
+    pass
+
+def earth_to_body_frame(earth_frame_vector, orientation):
+    pass
+
 def calculate_velocity_magnitude(vehicle):
     """Calculate the magnitude of the vehicle's velocity."""
     return sqrt(sum(v**2 for v in vehicle.velocity))
@@ -30,11 +36,17 @@ def calculate_drag(vehicle, air_density):
 def calculate_lift_coefficient(vehicle, aoa):
     """Calculate lift coefficient using flat plate model"""
     if vehicle.wings_deployed:
-        if - pi / 6 < aoa <= pi / 6:
+        if - pi / 18 < aoa <= pi / 18: # 10 degrees
             return 2 * pi * aoa
         else: # Stall
             return 0
     return 0
+
+def calculate_fin_force(vehicle, air_density):
+    """Calculate fin force."""
+    velocity_magnitude = sqrt(sum(v**2 for v in vehicle.velocity))
+    fin_force = 0.5 * air_density * calculate_lift_coefficient() * vehicle.fin_area * velocity_magnitude**2
+
         
 def calculate_lift(vehicle, air_density):
     """Calculate lift force."""
