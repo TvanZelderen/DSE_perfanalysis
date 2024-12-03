@@ -14,9 +14,9 @@ n_max = 2.5
 
 #### Wing characteristics ###
 
-airfoil = 'naca0010'
-chord = 0.1         # Chord length in meters
-span = 0.5          # Wingspan in meters
+airfoil = 'eppler e330'
+chord = 0.13        # Chord length in meters
+span = 0.6          # Wingspan in meters
 S = chord * span    # Wing area in m^2
 Ar = span ** 2 / S  # Aspect ratio
 

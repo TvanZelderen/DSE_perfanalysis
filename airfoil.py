@@ -4,6 +4,11 @@ import scipy as sp
 import os
 import pandas as pd
 
+### Download the airfoil csv file online from http://airfoiltools.com/airfoil/details?airfoil=naca2412-il ###
+### make the file name into name_airfoil-100k.csv ###
+
+### Put the files in your own directory, change the following path ###
+
 wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'
 airfoil_name = 'naca0010'
 
