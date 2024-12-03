@@ -14,7 +14,7 @@ n_max = 2.5
 
 #### Wing characteristics ###
 
-airfoil = 'naca2412'
+airfoil = 'naca0010'
 chord = 0.1         # Chord length in meters
 span = 0.5          # Wingspan in meters
 S = chord * span    # Wing area in m^2
@@ -24,9 +24,7 @@ Ar = span ** 2 / S  # Aspect ratio
 
 ### Define realistic limits for the angle of attack ###
 alpha_max_deg =  5  # Maximum realistic AoA (degrees)
-alpha_min_deg = -5  # Minimum realistic AoA (degrees)
-alpha_max_rad = np.radians(alpha_max_deg)
-alpha_min_rad = np.radians(alpha_min_deg)
+# alpha_min_deg = -5  # Minimum realistic AoA (degrees)
 
 # Lift curve slope and zero-lift angle of attack
 # C_L_alpha   = 6                         # Lift curve slope (per radian)
@@ -84,7 +82,7 @@ gammaarray = []
 tarray = []
 Varray = []
 Macharray = []
-Larray = []
+CLarray = []
 narray = []
 ldarray = []
 distance = 0.0
@@ -105,17 +103,12 @@ while Alt > 0 and V > 0:
 
     # Limit C_L to the maximum achievable based on alpha_max 
     C_L_max = f_airfoil(alpha_max_deg, airfoil_name = airfoil)
+
     if C_L_required > C_L_max:
         C_L = C_L_max
-        alpha = alpha_max_rad
+        alpha = alpha_max_deg
     elif C_L_required < f_airfoil(alpha_max_deg, airfoil_name = airfoil):
         C_L = C_L_required
-        a = np.arange(-5, 5, 0.1)
-        for alpha in a: 
-            C_L_find = f_airfoil(alpha, airfoil_name = airfoil)
-            if 0.95 * C_L_required <= C_L_find <= 1.05 * C_L_required:
-                alpha = alpha
-                break
     else:
         C_L = C_L_required
         alpha = (C_L / C_L_alpha) + alpha_0
@@ -151,7 +144,7 @@ while Alt > 0 and V > 0:
 
     # Load factor
     n = L / W
-    if n > n_max:
+    if abs(n) > n_max:
         n = n_max
         L = n * W
         C_L = L / (q * S)
@@ -170,7 +163,7 @@ while Alt > 0 and V > 0:
     tarray.append(t)
     Varray.append(V)
     Macharray.append(M)
-    Larray.append(L)
+    CLarray.append(L/(q*S))
     narray.append(n)
     ldarray.append(ld)
     t += dt
@@ -231,23 +224,20 @@ if len(distancearr) > 0:
     # plt.grid(True)
     # plt.show()
 
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(distancearr, narray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Load Factor (n)')
-    # plt.title('Load Factor vs Distance')
-    # plt.grid(True)
-    # plt.show()
-    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+    fig, axs = plt.subplots(3, 2, figsize=(10, 8))
 
     axs[0,0].plot(tarray, Altarray)
     axs[0,0].set_title('time vs. altitude')
     axs[1,0].plot(tarray, gammaarray)
     axs[1,0].set_title('time vs. velocity')
+    axs[2,0].plot(tarray, narray)
+    axs[2,0].set_title('time vs. load factor')
     axs[0,1].plot(distancearr, Altarray)
     axs[0,1].set_title('altitude vs distance')
     axs[1,1].plot(distancearr, Varray)
     axs[1,1].set_title('velocity vs distance')
+    axs[2,1].plot(tarray, CLarray)
+    axs[2,1].set_title('time vs CL')
     
 
 
@@ -270,7 +260,7 @@ if len(distancearr) > 0:
 
     print('Landing gliding angle:', gammaarray[-1])
   
-    print('V vert lanidng:' , np.abs( Varray[-1] * np.sin(gammaarray[-1])))
+    print('vertical V at lanidng:' , np.abs(Varray[-1] * np.sin(np.radians(gammaarray[-1]))))
 
     print(f"Total distance glided: {total_distance:.2f} meters")
 
