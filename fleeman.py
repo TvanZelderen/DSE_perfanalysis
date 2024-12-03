@@ -10,9 +10,9 @@ velocity = 100  # m/s
 altitude = 16000  # m
 
 # Wing variables
-n = 2  # number of fins
+n = 4  # number of fins
 f_surf = 0.1 * 0.1  # m^2 surface area of fins
-c_r = 0.2  # m root chord
+c_r = 0.1  # m root chord
 c_t = 0.1  # m tip chord
 le_sweep = pi / 4  # rad, pi/4 = 45 deg
 le_delta = pi / 12  # rad, pi/6 = 30 deg
