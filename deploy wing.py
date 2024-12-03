@@ -25,8 +25,8 @@ alpha_max_rad = np.radians(alpha_max_deg)
 alpha_min_rad = np.radians(alpha_min_deg)
 
 # Lift curve slope and zero-lift angle of attack
-C_L_alpha   = 6                         # Lift curve slope (per radian)
-alpha_0     = np.radians(-2.5)          # Zero-lift angle of attack in radians
+# C_L_alpha   = 6                         # Lift curve slope (per radian)
+# alpha_0     = np.radians(-2.5)          # Zero-lift angle of attack in radians
 
 def rhof(Altf):
     g = 9.80665      # Gravitational acceleration (m/s^2)
@@ -35,9 +35,9 @@ def rhof(Altf):
     P0 = 101325      # Sea-level standard pressure (Pa)
 
     if Altf <= 11000:
-        # Troposphere
-        L = -0.0065   # Temperature lapse rate (K/m)
-        T1 = T0 + L * Altf
+        # Troposphere 
+        L = -0.0065   # Temperature lapse rate (K/m) 
+        T1 = T0 + L * Altf 
         P1 = P0 * (T1 / T0) ** (-g / (L * R))
     elif Altf <= 20000:
         # Lower Stratosphere
@@ -113,8 +113,6 @@ while Alt > 0 and V > 0:
 
     # Compute lift and drag
     L = C_L * q * S
-    # C_Dinduced = C_L ** 2 / (np.pi * e * Ar)
-    # C_Dtotal = C_d0 + C_Dinduced + C_Dbody
 
 
     R = 287.05
@@ -122,6 +120,7 @@ while Alt > 0 and V > 0:
     M = V / a # Mach number
 
     # Drag divergence mach taken into account 
+    # Cd_total = 
     D = launch_vehicle_drag_coef(mach=M) * q * S
 
     # Compute accelerations
