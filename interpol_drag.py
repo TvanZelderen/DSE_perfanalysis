@@ -1,3 +1,6 @@
+import numpy as np
+from matplotlib import pyplot as plt
+
 def launch_vehicle_drag_coef(mach):
     if mach < 0:
         raise ValueError("The mach number has to be above 0.")
@@ -26,3 +29,15 @@ def launch_vehicle_drag_coef(mach):
     
 if __name__ == "__main__":
     print(launch_vehicle_drag_coef(1))
+    
+    macharr = np.arange(0, 4.5, 0.01)
+    cdarr = np.array([])
+
+    for element in macharr:
+        # print(element)
+        cd = launch_vehicle_drag_coef(element)
+        cdarr = np.append(cdarr, cd)
+
+    plt.figure()
+    plt.plot(macharr, cdarr)
+    plt.show()
