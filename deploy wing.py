@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from fleeman import fleeman_drag
 
 ### Aircraft parameters ###
 e = 0.6             # Oswald efficiency number
@@ -131,8 +132,9 @@ while Alt > 0 and V > 0:
     M = V / a #Mach number
 
 
-    from fleeman import fleeman_drag
-    D = fleeman_drag() * q * S
+
+    D = fleeman_drag(altitude=Alt) * q * S
+    # print('check', D)
 
     #gamma_dot = (L - W) / (m * V)
 
@@ -234,13 +236,13 @@ if len(distancearr) > 0:
     plt.grid(True)
     plt.show()
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(distancearr, Larray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Lift Force (N)')
-    plt.title('Lift Force vs Distance')
-    plt.grid(True)
-    plt.show()
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(distancearr, Larray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Lift Force (N)')
+    # plt.title('Lift Force vs Distance')
+    # plt.grid(True)
+    # plt.show()
 
     plt.figure(figsize=(10, 6))
     plt.plot(distancearr, narray)
