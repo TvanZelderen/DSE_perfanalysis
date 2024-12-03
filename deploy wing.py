@@ -12,7 +12,7 @@ n_max = 2.5
 
 #### Wing characteristics ###
 chord = 0.1         # Chord length in meters
-span = 1          # Wingspan in meters
+span = 0.5          # Wingspan in meters
 S = chord * span    # Wing area in m^2
 Ar = span ** 2 / S  # Aspect ratio
 
@@ -96,7 +96,7 @@ narray = []
 ldarray = []
 distance = 0.0
 
-from fleeman import fleeman_drag
+
 while Alt > 0 and V > 0:
     P, rho, T = rhof(Alt)
     if rho <= 0:
@@ -249,22 +249,6 @@ if len(distancearr) > 0:
     plt.xlabel('Distance Traveled (m)')
     plt.ylabel('Load Factor (n)')
     plt.title('Load Factor vs Distance')
-    plt.grid(True)
-    plt.show()
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(distancearr ,gammaarray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('gamma (deg)')
-    plt.title('gamma vs Distance')
-    plt.grid(True)
-    plt.show()
-
-    plt.figure(figsize=(10, 6))
-    plt.plot( gammaarray , Altarray)
-    plt.xlabel('Gamma (deg)')
-    plt.ylabel('Altitude (m)')
-    plt.title('gamma vs Altitude')
     plt.grid(True)
     plt.show()
 
