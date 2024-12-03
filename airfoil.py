@@ -4,10 +4,12 @@ import scipy as sp
 import os
 import pandas as pd
 
-def wing(alpha):
+wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'
+airfoil_name = 'naca0010'
 
-    wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'
-    wing_path = os.path.join(wing_folder, 'naca2412.csv')
+def f_airfoil(alpha, airfoil_name):
+    file_name = airfoil_name + '-100k.csv'
+    wing_path = os.path.join(wing_folder, file_name)
 
     with open(wing_path, 'r') as file:
         data_wing = file.read()
@@ -21,9 +23,11 @@ def wing(alpha):
     # clarr_interp = np.array([]) 
     # for element in alphaarr: 
     #     clarr_interp = np.append(clarr_interp, clalpha_interp(element)) 
-    return clalpha_interp(alpha)
+    return clalpha_interp(alpha) 
 
-# print(wing(5.01))
+
+if __name__ == '__main__':
+    print(f_airfoil(5.01, airfoil_name))
 
 
 # print(data_wing[])

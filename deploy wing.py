@@ -1,16 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from interpol_drag import launch_vehicle_drag_coef
+from airfoil import f_airfoil
+import scipy as sp
 
 ### Aircraft parameters ###
 e = 0.6             # Oswald efficiency number
-C_Dbody = 0.25      # Body drag coefficient
-m = 20.0            # Mass of the aircraft in kg
+# C_Dbody = 0.25      # Body drag coefficient
+m = 16            # Mass of the aircraft in kg
 g = 9.80665         # Gravitational acceleration in m/s^2
 W = m * g           # Weight of the aircraft in N
 n_max = 2.5
 
 #### Wing characteristics ###
+
+airfoil = 'naca2412'
 chord = 0.1         # Chord length in meters
 span = 0.5          # Wingspan in meters
 S = chord * span    # Wing area in m^2
@@ -99,14 +103,19 @@ while Alt > 0 and V > 0:
     L_required = W
     C_L_required = L_required / (q * S)
 
-    # Limit C_L to the maximum achievable based on alpha_max
-    C_L_max = C_L_alpha * (alpha_max_rad - alpha_0)
+    # Limit C_L to the maximum achievable based on alpha_max 
+    C_L_max = f_airfoil(alpha_max_deg, airfoil_name = airfoil)
     if C_L_required > C_L_max:
         C_L = C_L_max
         alpha = alpha_max_rad
-    elif C_L_required < C_L_alpha * (alpha_min_rad - alpha_0):
-        C_L = C_L_alpha * (alpha_min_rad - alpha_0)
-        alpha = alpha_min_rad
+    elif C_L_required < f_airfoil(alpha_max_deg, airfoil_name = airfoil):
+        C_L = C_L_required
+        a = np.arange(-5, 5, 0.1)
+        for alpha in a: 
+            C_L_find = f_airfoil(alpha, airfoil_name = airfoil)
+            if 0.95 * C_L_required <= C_L_find <= 1.05 * C_L_required:
+                alpha = alpha
+                break
     else:
         C_L = C_L_required
         alpha = (C_L / C_L_alpha) + alpha_0
