@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from fleeman import fleeman_drag
+from interpol_drag import launch_vehicle_drag_coef
 
 ### Aircraft parameters ###
 e = 0.6             # Oswald efficiency number
@@ -16,19 +16,17 @@ span = 0.5          # Wingspan in meters
 S = chord * span    # Wing area in m^2
 Ar = span ** 2 / S  # Aspect ratio
 
+#### Fin characteristics ###
+
 ### Define realistic limits for the angle of attack ###
 alpha_max_deg =  5  # Maximum realistic AoA (degrees)
 alpha_min_deg = -5  # Minimum realistic AoA (degrees)
 alpha_max_rad = np.radians(alpha_max_deg)
 alpha_min_rad = np.radians(alpha_min_deg)
 
-C_d0 = 0.015        # Zero-lift drag coefficient
-
 # Lift curve slope and zero-lift angle of attack
 C_L_alpha   = 6                         # Lift curve slope (per radian)
 alpha_0     = np.radians(-2.5)          # Zero-lift angle of attack in radians
-
-
 
 def rhof(Altf):
     g = 9.80665      # Gravitational acceleration (m/s^2)
@@ -64,18 +62,8 @@ def rhof(Altf):
     return P1, rho1, T1
 
 
-# Compute induced drag increase due to Mach number
-def get_Mach_dependent_drag(M):
-    if M < 0.8:
-        return 0
-    elif M < 1.0:
-        return 3 * (M - 0.8)**2  # Increase factor  trans sonic
-    else:
-        return 10.0 * (M - 1)**2  # Increase factor supersonic
+### Initial conditions ###
 
-
-
-# Initial conditions
 V = 200  # Initial velocity, m/s
 t = 0.0
 dt = 0.1
@@ -83,6 +71,7 @@ Alt = 26600.0  # Initial altitude, m
 gamma = 0.0
 gammedot = 0.0
 
+### Pre-analysis variables ### 
 
 Altarray = []
 distancearr = []
@@ -95,6 +84,7 @@ Larray = []
 narray = []
 ldarray = []
 distance = 0.0
+gamma_air = 1.4
 
 
 while Alt > 0 and V > 0:
@@ -123,23 +113,16 @@ while Alt > 0 and V > 0:
 
     # Compute lift and drag
     L = C_L * q * S
-    C_Dinduced = C_L ** 2 / (np.pi * e * Ar)
-    C_Dtotal = C_d0 + C_Dinduced + C_Dbody
+    # C_Dinduced = C_L ** 2 / (np.pi * e * Ar)
+    # C_Dtotal = C_d0 + C_Dinduced + C_Dbody
 
-    gamma_air = 1.4
+
     R = 287.05
     a = np.sqrt(gamma_air * R * T)
-    M = V / a #Mach number
+    M = V / a # Mach number
 
-
-
-    D = fleeman_drag(altitude=Alt) * q * S
-    # print('check', D)
-
-    #gamma_dot = (L - W) / (m * V)
-
-    # Compute flight path angle gamma
-    #gamma += gamma_dot * dt
+    # Drag divergence mach taken into account 
+    D = launch_vehicle_drag_coef(mach=M) * q * S
 
     # Compute accelerations
     Vdot = (-D - W * np.sin(gamma)) / m
@@ -195,46 +178,42 @@ while Alt > 0 and V > 0:
 # Total distance glided
 if len(distancearr) > 0:
     total_distance = distancearr[-1]
-    print(f"Total distance glided: {total_distance:.2f} meters")
-    print("Lift coefficient", C_L)
-    print("lift-over-drag: ", ld)
-    print("Time spent: ", tarray[-1])
-
+    
     # Plot altitude vs distance
-    plt.figure(figsize=(10,6))
-    plt.plot(distancearr, Altarray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Altitude (m)')
-    plt.title('Aircraft Glide Path')
-    plt.grid(True)
-    plt.show()
+    # plt.figure(figsize=(10,6))
+    # plt.plot(distancearr, Altarray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Altitude (m)')
+    # plt.title('Aircraft Glide Path')
+    # plt.grid(True)
+    # plt.show()
 
     # Plot angle of attack vs distance
-    plt.figure(figsize=(10,6))
-    plt.plot(distancearr, alphaarray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Angle of Attack (degrees)')
-    plt.title('Angle of Attack vs Distance (Limited to 5 degrees)')
-    plt.grid(True)
-    plt.show()
+    # plt.figure(figsize=(10,6))
+    # plt.plot(distancearr, alphaarray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Angle of Attack (degrees)')
+    # plt.title('Angle of Attack vs Distance (Limited to 5 degrees)')
+    # plt.grid(True)
+    # plt.show()
 
     # Plot velocity vs distance
-    plt.figure(figsize=(10,6))
-    plt.plot(distancearr, Varray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Velocity (m/s)')
-    plt.title('Velocity vs Distance')
-    plt.grid(True)
-    plt.show()
+    # plt.figure(figsize=(10,6))
+    # plt.plot(distancearr, Varray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Velocity (m/s)')
+    # plt.title('Velocity vs Distance')
+    # plt.grid(True)
+    # plt.show()
 
     # Plot Mach number vs distance
-    plt.figure(figsize=(10,6))
-    plt.plot(distancearr, Macharray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Mach Number')
-    plt.title('Mach Number vs Distance')
-    plt.grid(True)
-    plt.show()
+    # plt.figure(figsize=(10,6))
+    # plt.plot(distancearr, Macharray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Mach Number')
+    # plt.title('Mach Number vs Distance')
+    # plt.grid(True)
+    # plt.show()
 
     # plt.figure(figsize=(10, 6))
     # plt.plot(distancearr, Larray)
@@ -244,25 +223,48 @@ if len(distancearr) > 0:
     # plt.grid(True)
     # plt.show()
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(distancearr, narray)
-    plt.xlabel('Distance Traveled (m)')
-    plt.ylabel('Load Factor (n)')
-    plt.title('Load Factor vs Distance')
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(distancearr, narray)
+    # plt.xlabel('Distance Traveled (m)')
+    # plt.ylabel('Load Factor (n)')
+    # plt.title('Load Factor vs Distance')
+    # plt.grid(True)
+    # plt.show()
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+
+    axs[0,0].plot(tarray, Altarray)
+    axs[0,0].set_title('time vs. altitude')
+    axs[1,0].plot(tarray, gammaarray)
+    axs[1,0].set_title('time vs. velocity')
+    axs[0,1].plot(distancearr, Altarray)
+    axs[0,1].set_title('altitude vs distance')
+    axs[1,1].plot(distancearr, Varray)
+    axs[1,1].set_title('velocity vs distance')
+    
+
+
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(tarray, gammaarray)
+    # plt.xlabel('time')
+    # plt.ylabel('gamma')
+    # plt.title('gamma vs time')
     plt.grid(True)
     plt.show()
 
-
+    print("Lift coefficient", C_L)
+    print("lift-over-drag: ", ld)
+    print("Time spent: ", tarray[-1])
 
     print('Landing airspeed:', Varray[-1], 'm/s')
 
-    print('C_induced: ', C_Dinduced)
+    # print('C_induced: ', C_Dinduced)
+    # print('C_total' , C_Dtotal)
 
-    print('C_total' , C_Dtotal)
+    print('Landing gliding angle:', gammaarray[-1])
+  
+    print('V vert lanidng:' , np.abs( Varray[-1] * np.sin(gammaarray[-1])))
 
-    print( 'V vert lanidng: ' , np.abs( Varray[-1] * np.cos(gammaarray[-1])))
-
-    print( gamma)
+    print(f"Total distance glided: {total_distance:.2f} meters")
 
 
 else:
