@@ -96,6 +96,7 @@ params = {
         'time': 0,
         'distance': 0,
         'vertical speed': 0,
+        'turn_amgle': 0
     }
 
 velocity_controller = VelocityController(
@@ -142,6 +143,7 @@ while not landed:
     if params['altitude'] < 0:
         landed = True
 
+# print(states['gamma'])
 print(f"Maximum velocity: {max(states['velocity'])} m/s")
 print(f"Vertical speed at touchdown: {params['vertical speed']}")
 print(f"Distance travelled: {params['distance']}")
