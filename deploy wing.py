@@ -115,7 +115,7 @@ while Alt > 0 and V > 0:
         alpha = alpha_max_deg
     elif C_L_required < f_airfoil(alpha_max_deg, airfoil_name = airfoil_wing)[0]:
         C_L = C_L_required
-        print(C_L_required)
+        # print(C_L_required)
     else:
         C_L = C_L_required
         alpha = (C_L / C_L_alpha) + alpha_0
