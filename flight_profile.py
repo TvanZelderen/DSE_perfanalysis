@@ -103,8 +103,8 @@ velocity_controller = VelocityController(
         max_angle_of_attack=np.deg2rad(15)  # 15 degrees max AoA
     )
 
-clalpha_wing, cd0_fin, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing)
-clalpha_fin, cd0_wing, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin)
+clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing)
+clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin)
 
 print(clalpha_wing(5))
 
