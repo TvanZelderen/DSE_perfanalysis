@@ -96,7 +96,7 @@ params = {
         'time': 0,
         'distance': 0,
         'vertical speed': 0,
-        'turn_amgle': 0
+        'turn angle': 0
     }
 
 velocity_controller = VelocityController(
@@ -104,38 +104,85 @@ velocity_controller = VelocityController(
         max_angle_of_attack=np.deg2rad(7)  # 15 degrees max AoA
     )
 
-
+turn = True
+bank_angle = np.radians(60)
 
 while not landed:
-    params['time'] += dt
 
-    pressure, density, temperature = get_isa(params['altitude'])
-    dyn_press = dynamic_pressure(state[0], params['altitude'])
-    mach = mach_number(state[0], params['altitude'])
-    # print('mach', mach)
 
-    params['alpha'] = velocity_controller.update(state[0], dt)
+    ########### Turn Implementation ##########
+    if 5 < params['time'] < 100 and turn:
+        params['time'] += dt
 
-    cla_fin = float(clalpha_fin(params['alpha']))
-    induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
-    cla_wing = float(clalpha_wing(params['alpha']))
-    induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
-    drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
-    params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
-    params['lift'] = dyn_press * clalpha_wing(params['alpha']) * S_wing
+        pressure, density, temperature = get_isa(params['altitude'])
+        dyn_press = dynamic_pressure(state[0], params['altitude'])
+        mach = mach_number(state[0], params['altitude'])
+        # print('mach', mach)
 
-    state = rk4_step(state, flight_derivatives, params, dt)
-    
-    params['vertical speed'] = state[0] * np.sin(state[1])
-    params['altitude'] += params['vertical speed'] * dt # V * sin(gamma)
-    params['distance'] += state[0] * np.cos(state[1]) * dt # V * cos(gamma)
+        params['alpha'] = velocity_controller.update(state[0], dt)
 
-    states['time'].append(params['time'])
-    states['velocity'].append(state[0])
-    states['gamma'].append(np.rad2deg(state[1]))
-    states['altitude'].append(params['altitude'])
-    states['mach'].append(mach)
-    states['alpha'].append(np.rad2deg(params['alpha']))
+        cla_fin = float(clalpha_fin(params['alpha']))
+        induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
+        cla_wing = float(clalpha_wing(params['alpha']))
+        induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
+        drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
+        params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
+        params['lift'] = dyn_press * clalpha_wing(params['alpha']) * S_wing * np.cos(bank_angle)
+
+        state = rk4_step(state, flight_derivatives, params, dt)
+        
+        params['vertical speed'] = state[0] * np.sin(state[1])
+        params['horizontal speed'] = state[0] * np.cos(state[1])
+        params['delta angle'] = params['gravity'] * np.tan(bank_angle) / state[0]
+        params['turn angle'] += params['delta angle'] * dt
+        params['horizontal new'] = params['horizontal speed'] * np.cos(params['turn angle'])
+        params['altitude'] += params['vertical speed'] * dt # V * sin(gamma)
+        params['distance'] += params['horizontal new'] * dt # V * cos(gamma)
+
+
+        states['time'].append(params['time'])
+        states['velocity'].append(state[0])
+        states['gamma'].append(np.rad2deg(state[1]))
+        states['altitude'].append(params['altitude'])
+        states['mach'].append(mach)
+        states['alpha'].append(np.rad2deg(params['alpha']))
+        print(params['turn angle'])
+
+        if params['turn angle'] >= np.pi:
+            turn = False
+
+    ################################################################################################
+
+    else:
+        params['time'] += dt
+
+        pressure, density, temperature = get_isa(params['altitude'])
+        dyn_press = dynamic_pressure(state[0], params['altitude'])
+        mach = mach_number(state[0], params['altitude'])
+        # print('mach', mach)
+
+        params['alpha'] = velocity_controller.update(state[0], dt)
+
+        cla_fin = float(clalpha_fin(params['alpha']))
+        induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
+        cla_wing = float(clalpha_wing(params['alpha']))
+        induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
+        drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
+        params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
+        params['lift'] = dyn_press * clalpha_wing(params['alpha']) * S_wing
+
+        state = rk4_step(state, flight_derivatives, params, dt)
+        
+        params['vertical speed'] = state[0] * np.sin(state[1])
+        params['altitude'] += params['vertical speed'] * dt # V * sin(gamma)
+        params['distance'] += state[0] * np.cos(state[1]) * dt # V * cos(gamma)
+
+        states['time'].append(params['time'])
+        states['velocity'].append(state[0])
+        states['gamma'].append(np.rad2deg(state[1]))
+        states['altitude'].append(params['altitude'])
+        states['mach'].append(mach)
+        states['alpha'].append(np.rad2deg(params['alpha']))
 
     if params['altitude'] < 3000:
         velocity_controller.target_velocity = 30

@@ -15,9 +15,9 @@ g = 9.80665
 dt = 0.01
 ohm = 0
 
-def turn(start, bank_angle = bank_angle, states, params):
+if params['time'] < 100: 
 
-    start = params['time']
+    params['time'] += dt
 
     pressure, density, temperature = get_isa(params['altitude'])
     dyn_press = dynamic_pressure(state[0], params['altitude'])
@@ -40,8 +40,9 @@ def turn(start, bank_angle = bank_angle, states, params):
     params['horizontal speed'] = state[0] * np.cos(state[1])
     params['turn angle'] = params['gravity'] * np.tan(bank_angle) / state[0]
     params['turn angle'] += params['turn angle'] * dt
+    params['horizontal new'] = params['horizontal speed'] * np.cos(params['turn angle'])
     params['altitude'] += params['vertical speed'] * dt # V * sin(gamma)
-    params['distance'] += state[0] * np.cos(state[1]) * dt # V * cos(gamma)
+    params['distance'] += params['horizontal new'] * dt # V * cos(gamma)
 
 
     states['time'].append(params['time'])
@@ -51,4 +52,3 @@ def turn(start, bank_angle = bank_angle, states, params):
     states['mach'].append(mach)
     states['alpha'].append(np.rad2deg(params['alpha']))
 
-    start = start + dt
