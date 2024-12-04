@@ -77,7 +77,7 @@ def rhof(Altf):
 
 V = 200  # Initial velocity, m/s
 t = 0.0
-dt = 0.1
+dt = 0.01
 Alt = 26600.0  # Initial altitude, m
 gamma = 0.0
 gammedot = 0.0

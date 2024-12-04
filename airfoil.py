@@ -20,34 +20,29 @@ wing_folder = 'airfoil_database'   ### Folder directory for Keyan ###
 airfoil_name = 'naca2412'  ## airfoil name, keep it consistent with your file naming ##
 reynolds = '100k'  ## reynolds number for the airfoil, keep it consistent with the data that you downloaded
 
+file_name = airfoil_name + '-' + reynolds + '.csv'
+wing_path = os.path.join(wing_folder, file_name)
 
-def f_airfoil(alpha, airfoil_name):
-    file_name = airfoil_name + '-' + reynolds + '.csv'
-    wing_path = os.path.join(wing_folder, file_name)
+with open(wing_path, 'r') as file:
+    data_wing = file.read()
 
-    with open(wing_path, 'r') as file:
-        data_wing = file.read()
+lines = data_wing.strip().split('\n')
+arraycsv = [line.split(',') for line in lines][11:] 
 
-    lines = data_wing.strip().split('\n')
-    arraycsv = [line.split(',') for line in lines][11:]  ## read file, skip the first 11 rows because they are useless information 
-
-    cdarr = np.array([float(value) for value in np.array(arraycsv)[:, 2]])  ## read the cd column
-    alphaarr = np.array([float(value) for value in np.array(arraycsv)[:, 0]])  ## read the alpha column
-    clarr = np.array([float(value) for value in np.array(arraycsv)[:, 1]])  ## read the cl column
-    cmarr = np.array([float(value) for value in np.array(arraycsv)[:, 4]])  ## read the cm column
-
-    ## interpolate cl-alpha curve to make it continious ##
+def f_airfoil(airfoil_name, airfoildata = arraycsv):
+    alphaarr = np.array([float(value) for value in np.array(airfoildata)[:, 0]])  ## read the alpha column
+    clarr = np.array([float(value) for value in np.array(airfoildata)[:, 1]])  ## read the cl column
+    cmarr = np.array([float(value) for value in np.array(airfoildata)[:, 4]])  ## read the cm column
+    cdarr = np.array([float(value) for value in np.array(airfoildata)[:, 2]])
     clalpha_interp = sp.interpolate.interp1d(alphaarr, clarr)
     cmalpha_interp = sp.interpolate.interp1d(alphaarr, cmarr)
-    # print(type(alphaarr))
     cd0 = cdarr[np.where(alphaarr == 0.0)]
     # cm = cmarr[np.where(alphaarr == alpha)]
-    
-    return clalpha_interp(alpha), cd0, cmalpha_interp(alpha)
 
+    return clalpha_interp, cd0, cmalpha_interp
 
 if __name__ == '__main__':
-    print(f_airfoil(8, airfoil_name))
+    print(f_airfoil(airfoil_name))
 
 
 # print(data_wing[])
