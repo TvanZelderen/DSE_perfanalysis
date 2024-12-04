@@ -7,14 +7,14 @@ from velocity_controller import VelocityController
 from airfoil import f_airfoil
 
 e = 0.6
-airfoil_wing = 'naca2412'
+airfoil_wing = 'ah6407'
 airfoil_fin = 'naca0012'
 
 clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # alpha max =
 clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin) # alpha max =
 
-print(clalpha_wing(5), clalpha_wing(10))
-print(clalpha_fin(5), clalpha_fin(10))
+# print(clalpha_wing(5), clalpha_wing(10))
+# print(clalpha_fin(5), clalpha_fin(10))
 
 def flight_derivatives(state, params):
     """
@@ -71,8 +71,8 @@ landed = False
 radius = 0.29 / 2
 frontal_area = radius ** 2 * pi
 
-wingspan = 0.5
-wingchord = 0.1
+wingspan = 1
+wingchord = 0.12
 S_wing = wingspan * wingchord
 Ar_wing = wingspan ** 2 / S_wing
 
@@ -103,8 +103,10 @@ params = {
 
 velocity_controller = VelocityController(
         target_velocity=100.0,  # m/s
-        max_angle_of_attack=np.deg2rad(15)  # 15 degrees max AoA
+        max_angle_of_attack=np.deg2rad(7)  # 15 degrees max AoA
     )
+
+
 
 while not landed:
     params['time'] += dt
@@ -112,6 +114,7 @@ while not landed:
     pressure, density, temperature = get_isa(params['altitude'])
     dyn_press = dynamic_pressure(state[0], params['altitude'])
     mach = mach_number(state[0], params['altitude'])
+    # print('mach', mach)
 
     params['alpha'] = velocity_controller.update(state[0], dt)
 
@@ -121,7 +124,8 @@ while not landed:
     induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
-    params['lift'] = dyn_press * clalpha_wing(params['alpha']) * wingspan * wingchord
+    params['lift'] = dyn_press * clalpha_wing(params['alpha']) * S_wing
+
     state = rk4_step(state, flight_derivatives, params, dt)
     
     params['vertical speed'] = state[0] * np.sin(state[1])
