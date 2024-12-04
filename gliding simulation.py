@@ -14,7 +14,7 @@ n_max = 2.5
 
 #### Wing characteristics ###
 
-airfoil_wing = 'eppler e330'  # Input your airfoil name (see airfoil.py for instructions)
+airfoil_wing = 'ah6407'  # Input your airfoil name (see airfoil.py for instructions)
 chord = 0.12        # Chord length in meters
 span = 1          # Wingspan in meters
 S = chord * span    # Wing area in m^2
@@ -266,16 +266,14 @@ if len(distancearr) > 0:
     plt.grid(True)
     plt.show()
 
-    print("Lift coefficient", C_L)
-    print("lift-over-drag: ", ld)
-    print("Time spent: ", tarray[-1])
+    print("Lift coefficient", C_L) 
+    # print("lift-over-drag: ", ld)
+    print("Time spent: ", tarray[-1]) 
 
     print('Landing airspeed:', Varray[-1], 'm/s')
-
     # print('C_induced: ', C_Dinduced)
     # print('C_total' , C_Dtotal)
-
-    print('Landing gliding angle:', gammaarray[-1])
+    print('Landing angle:', gammaarray[-1])
   
     print('vertical V at lanidng:' , np.abs(Varray[-1] * np.sin(np.radians(gammaarray[-1]))))
 

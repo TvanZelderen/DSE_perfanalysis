@@ -29,19 +29,19 @@ def f_airfoil(alpha, airfoil_name):
     alphaarr = np.array([float(value) for value in np.array(arraycsv)[:, 0]])
     clarr = np.array([float(value) for value in np.array(arraycsv)[:, 1]])
     cmarr = np.array([float(value) for value in np.array(arraycsv)[:, 4]])
+
+    ## interpolate cl-alpha curve to make it continious ##
     clalpha_interp = sp.interpolate.interp1d(alphaarr, clarr)
+    cmalpha_interp = sp.interpolate.interp1d(alphaarr, cmarr)
     # print(type(alphaarr))
     cd0 = cdarr[np.where(alphaarr == 0.0)]
     cm = cmarr[np.where(alphaarr == alpha)]
-    # print(type(clarr)) 
-    # clarr_interp = np.array([]) 
-    # for element in alphaarr: 
-    #     clarr_interp = np.append(clarr_interp, clalpha_interp(element)) 
-    return clalpha_interp(alpha), cd0, cm
+    
+    return clalpha_interp(alpha), cd0, cmalpha_interp(alpha)
 
 
 if __name__ == '__main__':
-    print(f_airfoil(5.01, airfoil_name))
+    print(f_airfoil(5.0, airfoil_name))
 
 
 # print(data_wing[])

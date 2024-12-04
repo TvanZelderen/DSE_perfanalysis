@@ -7,7 +7,7 @@ alpha = 5
 
 #### Wing characteristics ###
 
-airfoil_wing = 'naca0714'  # Input your airfoil name (see airfoil.py for instructions)
+airfoil_wing = 'naca2412'  # Input your airfoil name (see airfoil.py for instructions)
 chord = 0.1        # Chord length in meters
 span = 0.7          # Wingspan in meters
 S = chord * span    # Wing area in m^2
@@ -17,7 +17,7 @@ Ar_wing = span ** 2 / S  # Aspect ratio
 
 airfoil_fin = 'naca0012'
 chord_fin = 0.05
-span_fin = 0.3
+span_fin = 0.5
 S_fin = chord_fin * span_fin
 Ar_fin = span_fin ** 2 / S_fin
 # Cm
