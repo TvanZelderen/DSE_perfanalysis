@@ -15,16 +15,16 @@ n_max = 2.5
 #### Wing characteristics ###
 
 airfoil_wing = 'eppler e330'  # Input your airfoil name (see airfoil.py for instructions)
-chord = 0.13        # Chord length in meters
-span = 0.6          # Wingspan in meters
+chord = 0.12        # Chord length in meters
+span = 1          # Wingspan in meters
 S = chord * span    # Wing area in m^2
 Ar_wing = span ** 2 / S  # Aspect ratio
 
 #### Fin characteristics ###
 
-airfoil_fin = 'naca0012'
-chord_fin = 0.1
-span_fin = 0.1
+airfoil_fin = 'naca0010'
+chord_fin = 0.05
+span_fin = 0.5
 S_fin = chord_fin * span_fin
 Ar_fin = span_fin ** 2 / S_fin
 
