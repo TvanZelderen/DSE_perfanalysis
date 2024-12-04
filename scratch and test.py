@@ -1,3 +1,8 @@
+import numpy as np
+from airfoil import f_airfoil
+
+
+
 def rhof(Altf):
     g = 9.80665      # Gravitational acceleration (m/s^2)
     R = 287.05       # Specific gas constant for dry air (J/(kg·K))
@@ -30,3 +35,13 @@ def rhof(Altf):
 
     rho1 = P1 / (R * T1)
     return P1, rho1, T1
+
+# print(rhof(26600)[1])
+ 
+a = np.arange(-8, 8, 0.01)
+
+for element in a: 
+    cl = f_airfoil(alpha = element, airfoil_name = 'naca0012')[0]
+    if 0.98 * 0.0339 <= cl <= 1.02 * 0.0339:
+        print(element)
+        break
