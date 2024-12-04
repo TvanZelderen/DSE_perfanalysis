@@ -10,8 +10,8 @@ import os
 
 #### Put the downloaded airfoil files in your own directory, change the following path ####
 
-wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'   ### For Max: comment out this line ###
-# wing_folder = 'C:/Documenten/AE/Y3/DSE'                                 ### For Max: Uncomment this line ###
+wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'   ### Folder directory for Keyan ###
+# wing_folder = 'C:/Documenten/AE/Y3/DSE'                                 ### Folder directory for Max ###
 
 
 airfoil_name = 'naca0010'
