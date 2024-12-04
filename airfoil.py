@@ -2,26 +2,27 @@ import numpy as np
 from matplotlib import pyplot as plt
 import scipy as sp
 import os
+import airfoil_database
 
 ############################################## Read Instructions #############################################
 ############################################## Read Instructions #############################################
 ############################################## Read Instructions #############################################
 
 ##### Download the airfoil csv data online from http://airfoiltools.com/airfoil/ #####
-##### Rename the csv file into name_airfoil-100k.csv #####
+##### Rename the csv file into name_airfoil-(X)k.csv, where (X)k is the reynolds number#####
 
 ## Later you need to also input your airfoil name in deploy wing.py ##
 
-####### Put the downloaded airfoil files in your own directory, change the following path #######
+####### Put the downloaded airfoil files in the following directory #######
 
-wing_folder = 'D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoils'   ### Folder directory for Keyan ###
-# wing_folder = 'C:/Documenten/AE/Y3/DSE'                                 ### Folder directory for Max ###
-# wing_folder =                                                           ### Folder directory for --new user-- ###
+wing_folder = 'airfoil_database'   ### Folder directory for Keyan ###
 
-airfoil_name = 'naca0010'  ## airfoil name, keep it consistent with your file naming ##
+airfoil_name = 'naca2412'  ## airfoil name, keep it consistent with your file naming ##
+reynolds = '100k'  ## reynolds number for the airfoil, keep it consistent with the data that you downloaded
+
 
 def f_airfoil(alpha, airfoil_name):
-    file_name = airfoil_name + '-100k.csv'
+    file_name = airfoil_name + '-' + reynolds + '.csv'
     wing_path = os.path.join(wing_folder, file_name)
 
     with open(wing_path, 'r') as file:
