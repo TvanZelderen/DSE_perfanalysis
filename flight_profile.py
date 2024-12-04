@@ -144,4 +144,3 @@ while not landed:
 print(f"Vertical speed at touchdown: {params['vertical speed']}")
 print(f"Distance travelled: {params['distance']}")
 plot_flight_states(states)
-plot_alpha(states)

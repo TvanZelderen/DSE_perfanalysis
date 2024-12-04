@@ -8,36 +8,43 @@ def plot_flight_states(states):
     states (dict): Dictionary containing time series data for flight parameters
     """
     # Create a figure with subplots
-    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+    fig, axs = plt.subplot_mosaic([["big", "big", "tr"],["big", "big", "mr"],["bl", "bm", "br"],["bbl", "bbm", "bbr"]], figsize=(12, 12))
     fig.suptitle('Flight Simulation States', fontsize=16)
     
     # Velocity plot
-    axs[0, 0].plot(states['time'], states['velocity'], color='blue')
-    axs[0, 0].set_title('Velocity vs Time')
-    axs[0, 0].set_xlabel('Time (s)')
-    axs[0, 0].set_ylabel('Velocity (m/s)')
-    axs[0, 0].grid(True)
+    axs["tr"].plot(states['time'], states['velocity'], color='blue')
+    axs["tr"].set_title('Velocity vs Time')
+    axs["tr"].set_xlabel('Time (s)')
+    axs["tr"].set_ylabel('Velocity (m/s)')
+    axs["tr"].grid(True)
     
     # Flight Path Angle plot
-    axs[0, 1].plot(states['time'], states['gamma'], color='green')
-    axs[0, 1].set_title('Flight Path Angle vs Time')
-    axs[0, 1].set_xlabel('Time (s)')
-    axs[0, 1].set_ylabel('Flight Path Angle (deg)')
-    axs[0, 1].grid(True)
+    axs["bm"].plot(states['time'], states['gamma'], color='green')
+    axs["bm"].set_title('Flight Path Angle vs Time')
+    axs["bm"].set_xlabel('Time (s)')
+    axs["bm"].set_ylabel('Flight Path Angle (deg)')
+    axs["bm"].grid(True)
     
     # Altitude plot
-    axs[1, 0].plot(states['time'], states['altitude'], color='red')
-    axs[1, 0].set_title('Altitude vs Time')
-    axs[1, 0].set_xlabel('Time (s)')
-    axs[1, 0].set_ylabel('Altitude (m)')
-    axs[1, 0].grid(True)
+    axs["br"].plot(states['time'], states['altitude'], color='red')
+    axs["br"].set_title('Altitude vs Time')
+    axs["br"].set_xlabel('Time (s)')
+    axs["br"].set_ylabel('Altitude (m)')
+    axs["br"].grid(True)
     
-    # Velocity vs Altitude plot
-    axs[1, 1].plot(states['time'], states['mach'], color='purple')
-    axs[1, 1].set_title('Mach vs Time')
-    axs[1, 1].set_xlabel('Mach')
-    axs[1, 1].set_ylabel('Time (s)')
-    axs[1, 1].grid(True)
+    # Mach plot
+    axs["bl"].plot(states['time'], states['mach'], color='purple')
+    axs["bl"].set_title('Mach vs Time')
+    axs["bl"].set_xlabel('Mach')
+    axs["bl"].set_ylabel('Time (s)')
+    axs["bl"].grid(True)
+
+    # Alpha plot
+    axs["mr"].plot(states['time'], states['alpha'])
+    axs["mr"].set_title('Alpha vs Time')
+    axs["mr"].set_xlabel('Time (s)')
+    axs["mr"].set_ylabel('Alpha (deg)')
+    axs["mr"].grid(True)
     
     # Adjust layout and display
     plt.tight_layout()
