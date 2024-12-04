@@ -4,6 +4,11 @@ from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
 from plot import plot_flight_states, plot_alpha
 from velocity_controller import VelocityController
+from airfoil import f_airfoil
+
+e = 0.6
+wing_airfoil = 'naca2412'
+fin_airfoil = 'naca0012'
 
 
 def flight_derivatives(state, params):
@@ -54,16 +59,25 @@ def rk4_step(state_0, derivatives_func, params, dt):
 
 # Initial state
 state = np.array([200.0, np.deg2rad(0)])  # [V, gamma]
-time = 0
+time = 0 
 dt = 0.01  # time step
 landed = False
 
 radius = 0.29 / 2
 frontal_area = radius ** 2 * pi
+
 wingspan = 0.5
 wingchord = 0.1
-cl_max = 0.65
-cl_max_alpha = np.deg2rad(5)
+S_wing = wingspan * wingchord
+Ar_wing = wingspan ** 2 / S_wing
+
+finspan = 0.1
+finchord = 0.1
+S_fin = finspan * finchord
+Ar_fin = finspan ** 2 / S_fin
+
+# cl_max = 0.65
+# cl_max_alpha = np.deg2rad(5)
 
 states = {
     'time': [],
@@ -98,9 +112,13 @@ while not landed:
 
     params['alpha'] = velocity_controller.update(state[0], dt)
 
-    params['drag'] = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
-    params['lift'] = dyn_press * (params['alpha'] * cl_max / cl_max_alpha) * wingspan * wingchord
-
+    params['induced_drag_fins'] = float(dyn_press * (f_airfoil(alpha = params['alpha'], airfoil_name = fin_airfoil)[1] + f_airfoil(alpha = params['alpha'], airfoil_name = fin_airfoil)[0] ** 2 / (np.pi * e * Ar_fin)) * S_fin)
+    params['induced_drag_wing'] = float(dyn_press * (f_airfoil(alpha = params['alpha'], airfoil_name = wing_airfoil)[1] + f_airfoil(alpha = params['alpha'], airfoil_name = wing_airfoil)[0] ** 2 / (np.pi * e * Ar_wing)) * S_wing)
+    params['drag_body'] = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
+    params['drag'] = params['induced_drag_fins'] + params['induced_drag_wing'] + params['drag_body']
+    params['lift'] = dyn_press * (f_airfoil(alpha = params['alpha'], airfoil_name = wing_airfoil)[0]) * wingspan * wingchord
+    # print(params['induced_drag_fins'], params['induced_drag_wing'], params['drag_body'])
+    # print(params)
     state = rk4_step(state, flight_derivatives, params, dt)
     
     params['vertical speed'] = state[0] * np.sin(state[1])
