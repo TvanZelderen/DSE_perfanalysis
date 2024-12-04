@@ -15,16 +15,16 @@ n_max = 2.5
 #### Wing characteristics ###
 
 airfoil_wing = 'eppler e330'  # Input your airfoil name (see airfoil.py for instructions)
-chord = 0.13        # Chord length in meters
-span = 0.6          # Wingspan in meters
+chord = 0.12        # Chord length in meters
+span = 1          # Wingspan in meters
 S = chord * span    # Wing area in m^2
 Ar_wing = span ** 2 / S  # Aspect ratio
 
 #### Fin characteristics ###
 
-airfoil_fin = 'naca0012'
-chord_fin = 0.1
-span_fin = 0.1
+airfoil_fin = 'naca0010'
+chord_fin = 0.05
+span_fin = 0.5
 S_fin = chord_fin * span_fin
 Ar_fin = span_fin ** 2 / S_fin
 
@@ -94,6 +94,12 @@ ldarray = np.array([])
 distance = 0.0
 gamma_air = 1.4
 
+### Variable to calculate outside loop for optimisation ###
+C_L_max = f_airfoil(alpha_max_deg, airfoil_name = airfoil_wing)[0]
+C_d0_fin = f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[1]
+C_L_fin_0 = f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[0]
+
+
 
 while Alt > 0 and V > 0:
     P, rho, T = rhof(Alt)
@@ -108,12 +114,11 @@ while Alt > 0 and V > 0:
     C_L_required = L_required / (q * S)
 
     # Limit C_L to the maximum achievable based on alpha_max 
-    C_L_max = f_airfoil(alpha_max_deg, airfoil_name = airfoil_wing)[0]
 
     if C_L_required > C_L_max:
         C_L = C_L_max
         alpha = alpha_max_deg
-    elif C_L_required < f_airfoil(alpha_max_deg, airfoil_name = airfoil_wing)[0]:
+    elif C_L_required < C_L_max:
         C_L = C_L_required
         # print(C_L_required)
     else:
@@ -129,8 +134,9 @@ while Alt > 0 and V > 0:
     M = V / a # Mach number
 
     # Drag divergence mach taken into account 
-    C_D_wing_ind = f_airfoil(alpha, airfoil_name = airfoil_wing)[1] + f_airfoil(alpha, airfoil_name = airfoil_wing)[0] ** 2 / (np.pi * e * Ar_wing)
-    C_D_fin_ind = 2 * f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[1] + f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[0] ** 2 / (np.pi * e * Ar_fin)
+    wing_characteristics = f_airfoil(alpha, airfoil_name = airfoil_wing)
+    C_D_wing_ind = wing_characteristics[1] + wing_characteristics[0] ** 2 / (np.pi * e * Ar_wing)
+    C_D_fin_ind = 2 * C_d0_fin + C_L_fin_0 ** 2 / (np.pi * e * Ar_fin)
     C_D_total = C_D_wing_ind + C_D_fin_ind + launch_vehicle_drag_coef(mach = M)
     D = C_D_total * q * S
 
