@@ -11,25 +11,22 @@ import scipy as sp
 ###################################### Read before proceed ########################################
 # Before running this file, first go to airfoil.py to set up your airfoil, follow the instructions #
 
-### Aircraft parameters ###
-e = 0.6             # Oswald efficiency number
-# C_Dbody = 0.25      # Body drag coefficient
-m = 16            # Mass of the aircraft in kg
-g = 9.80665         # Gravitational acceleration in m/s^2
-W = m * g           # Weight of the aircraft in N
+#### Aircraft parameters ####
+e = 0.6                 # Oswald efficiency number, assumed
+m = 16                  # Mass of the aircraft in kg
+g = 9.80665             # Gravitational acceleration in m/s^2
+W = m * g               # Weight of the aircraft in N
 n_max = 2.5
 
-#### Wing characteristics ###
+#### Wing characteristics ####
+airfoil_wing = 'ah6407' # Input your airfoil for the wing (see airfoil.py for instructions)
+chord = 0.12            # Chord length in meters
+span = 1                # Wingspan in meters
+S = chord * span        # Wing area in m^2
+Ar_wing = span ** 2 / S # Aspect ratio
 
-airfoil_wing = 'ah6407'  # Input your airfoil name (see airfoil.py for instructions)
-chord = 0.12        # Chord length in meters
-span = 1          # Wingspan in meters
-S = chord * span    # Wing area in m^2
-Ar_wing = span ** 2 / S  # Aspect ratio
-
-#### Fin characteristics ###
-
-airfoil_fin = 'naca0010'
+#### Fin characteristics ####
+airfoil_fin = 'naca0010'  # Input your airfoil for the fin
 chord_fin = 0.05
 span_fin = 0.5
 S_fin = chord_fin * span_fin
@@ -37,11 +34,6 @@ Ar_fin = span_fin ** 2 / S_fin
 
 ### Define realistic limits for the angle of attack ###
 alpha_max_deg =  5  # Maximum realistic AoA (degrees)
-# alpha_min_deg = -5  # Minimum realistic AoA (degrees)
-
-# Lift curve slope and zero-lift angle of attack
-# C_L_alpha   = 6                         # Lift curve slope (per radian)
-# alpha_0     = np.radians(-2.5)          # Zero-lift angle of attack in radians
 
 def rhof(Altf):
     g = 9.80665      # Gravitational acceleration (m/s^2)
@@ -142,6 +134,7 @@ while Alt > 0 and V > 0:
 
     # Drag divergence mach taken into account 
     wing_characteristics = f_airfoil(alpha, airfoil_name = airfoil_wing)
+
     C_D_wing_ind = wing_characteristics[1] + wing_characteristics[0] ** 2 / (np.pi * e * Ar_wing)
     C_D_fin_ind = 2 * C_d0_fin + C_L_fin_0 ** 2 / (np.pi * e * Ar_fin)
     C_D_total = C_D_wing_ind + C_D_fin_ind + launch_vehicle_drag_coef(mach = M)
@@ -195,61 +188,14 @@ while Alt > 0 and V > 0:
         break
 
 
+total_distance = distancearr[-1]  # Total distance glided
 
 
 
-# Total distance glided
-if len(distancearr) > 0:
-    total_distance = distancearr[-1]
+plot = False
+if len(distancearr) > 0 and plot:
     
-    # Plot altitude vs distance
-    # plt.figure(figsize=(10,6))
-    # plt.plot(distancearr, Altarray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Altitude (m)')
-    # plt.title('Aircraft Glide Path')
-    # plt.grid(True)
-    # plt.show()
-
-    # Plot angle of attack vs distance
-    # plt.figure(figsize=(10,6))
-    # plt.plot(distancearr, alphaarray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Angle of Attack (degrees)')
-    # plt.title('Angle of Attack vs Distance (Limited to 5 degrees)')
-    # plt.grid(True)
-    # plt.show()
-
-    # Plot velocity vs distance
-    # plt.figure(figsize=(10,6))
-    # plt.plot(distancearr, Varray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Velocity (m/s)')
-    # plt.title('Velocity vs Distance')
-    # plt.grid(True)
-    # plt.show()
-
-    # Plot Mach number vs distance
-    # plt.figure(figsize=(10,6))
-    # plt.plot(distancearr, Macharray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Mach Number')
-    # plt.title('Mach Number vs Distance')
-    # plt.grid(True)
-    # plt.show()
-
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(distancearr, Larray)
-    # plt.xlabel('Distance Traveled (m)')
-    # plt.ylabel('Lift Force (N)')
-    # plt.title('Lift Force vs Distance')
-    # plt.grid(True)
-    # plt.show()
-
     fig, axs = plt.subplots(3, 2, figsize=(10, 8))
-    # print(np.shape(tarray))
-    # print(np.shape(tarray))
-    # print(np.shape(Altarray))
     axs[0,0].plot(tarray, Altarray)
     axs[0,0].set_title('time vs. altitude')
     axs[1,0].plot(tarray, gammaarray)
@@ -273,19 +219,16 @@ if len(distancearr) > 0:
     plt.grid(True)
     plt.show()
 
-    print("Lift coefficient", C_L) 
-    # print("lift-over-drag: ", ld)
-    print("Time spent: ", tarray[-1]) 
+print("Lift coefficient", C_L) 
+# print("lift-over-drag: ", ld)
+print("Time spent: ", tarray[-1]) 
 
-    print('Landing airspeed:', Varray[-1], 'm/s')
-    # print('C_induced: ', C_Dinduced)
-    # print('C_total' , C_Dtotal)
-    print('Landing angle:', gammaarray[-1])
-  
-    print('vertical V at lanidng:' , np.abs(Varray[-1] * np.sin(np.radians(gammaarray[-1]))))
+print('Landing airspeed:', Varray[-1], 'm/s')
+# print('C_induced: ', C_Dinduced)
+# print('C_total' , C_Dtotal)
+print('Landing angle:', gammaarray[-1])
 
-    print(f"Total distance glided: {total_distance:.2f} meters")
+print('vertical V at lanidng:' , np.abs(Varray[-1] * np.sin(np.radians(gammaarray[-1]))))
 
+print(f"Total distance glided: {total_distance:.2f} meters")
 
-else:
-    print("Simulation did not produce any data.")
