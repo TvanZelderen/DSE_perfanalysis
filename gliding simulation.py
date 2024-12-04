@@ -32,9 +32,13 @@ span_fin = 0.5
 S_fin = chord_fin * span_fin
 Ar_fin = span_fin ** 2 / S_fin
 
+#### Constants ####
+R = 287.05
+
 ### Define realistic limits for the angle of attack ###
 alpha_max_deg =  5  # Maximum realistic AoA (degrees)
 
+#### ISA conditions ####
 def rhof(Altf):
     g = 9.80665      # Gravitational acceleration (m/s^2)
     R = 287.05       # Specific gas constant for dry air (J/(kg·K))
@@ -93,10 +97,12 @@ ldarray = np.array([])
 distance = 0.0
 gamma_air = 1.4
 
+
 ### Variable to calculate outside loop for optimisation ###
 C_L_max = f_airfoil(alpha_max_deg, airfoil_name = airfoil_wing)[0]
 C_d0_fin = f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[1]
 C_L_fin_0 = f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[0]
+L_required = W
 
 
 
@@ -109,7 +115,7 @@ while Alt > 0 and V > 0:
     q = 0.5 * rho * V ** 2  # Dynamic pressure
 
     # Compute required lift coefficient
-    L_required = W
+
     C_L_required = L_required / (q * S)
 
     # Limit C_L to the maximum achievable based on alpha_max 
@@ -122,14 +128,12 @@ while Alt > 0 and V > 0:
         # print(C_L_required)
     else:
         C_L = C_L_required
-        alpha = (C_L / C_L_alpha) + alpha_0
+        alpha = alpha_max_deg
 
     # Compute lift and drag
     L = C_L * q * S
 
-
-    R = 287.05
-    a = np.sqrt(gamma_air * R * T)
+    a = np.sqrt(gamma_air * R * T)  # Speed of sound 
     M = V / a # Mach number
 
     # Drag divergence mach taken into account 
