@@ -83,14 +83,14 @@ gammedot = 0.0
 
 Altarray = np.array([])
 distancearr = np.array([])
-alphaarray = []
+alphaarray = np.array([])
 gammaarray = np.array([])
 tarray = np.array([])
-Varray = []
-Macharray = []
-CLarray = []
+Varray = np.array([])
+Macharray = np.array([])
+CLarray = np.array([])
 narray = np.array([])
-ldarray = []
+ldarray = np.array([])
 distance = 0.0
 gamma_air = 1.4
 
@@ -130,7 +130,7 @@ while Alt > 0 and V > 0:
 
     # Drag divergence mach taken into account 
     C_D_wing_ind = f_airfoil(alpha, airfoil_name = airfoil_wing)[1] + f_airfoil(alpha, airfoil_name = airfoil_wing)[0] ** 2 / (np.pi * e * Ar_wing)
-    C_D_fin_ind = 2 * f_airfoil(alpha, airfoil_name = airfoil_fin)[1] + f_airfoil(alpha, airfoil_name = airfoil_fin)[0] ** 2 / (np.pi * e * Ar_fin)
+    C_D_fin_ind = 2 * f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[1] + f_airfoil(alpha = 0, airfoil_name = airfoil_fin)[0] ** 2 / (np.pi * e * Ar_fin)
     C_D_total = C_D_wing_ind + C_D_fin_ind + launch_vehicle_drag_coef(mach = M)
     D = C_D_total * q * S
 
@@ -167,14 +167,14 @@ while Alt > 0 and V > 0:
     # Store data
     Altarray = np.append(Altarray, Alt)
     distancearr = np.append(distancearr, distance)
-    alphaarray.append(np.degrees(alpha))
+    alphaarray = np.append(alphaarray, alpha)
     gammaarray = np.append(gammaarray, np.degrees(gamma))
     tarray = np.append(tarray, t)
-    Varray.append(V)
-    Macharray.append(M)
+    Varray = np.append(Varray, V)
+    Macharray = np.append(Macharray, M)
     CLarray = np.append(CLarray, L/(q*S))
     narray = np.append(narray, n)
-    ldarray.append(ld)
+    ldarray = np.append(ldarray, ld)
     t += dt
 
     if t > 10000:
@@ -234,10 +234,9 @@ if len(distancearr) > 0:
     # plt.show()
 
     fig, axs = plt.subplots(3, 2, figsize=(10, 8))
-
     # print(np.shape(tarray))
-    print(np.shape(tarray))
-    print(np.shape(Altarray))
+    # print(np.shape(tarray))
+    # print(np.shape(Altarray))
     axs[0,0].plot(tarray, Altarray)
     axs[0,0].set_title('time vs. altitude')
     axs[1,0].plot(tarray, gammaarray)
