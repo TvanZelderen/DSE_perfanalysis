@@ -4,6 +4,13 @@ from interpol_drag import launch_vehicle_drag_coef
 from airfoil import f_airfoil
 import scipy as sp
 
+########################################## Instruction ############################################
+########################################## Instruction ############################################
+########################################## Instruction ############################################
+
+###################################### Read before proceed ########################################
+# Before running this file, first go to airfoil.py to set up your airfoil, follow the instructions #
+
 ### Aircraft parameters ###
 e = 0.6             # Oswald efficiency number
 # C_Dbody = 0.25      # Body drag coefficient
