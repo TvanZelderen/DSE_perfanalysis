@@ -10,11 +10,8 @@ e = 0.6
 airfoil_wing = 'ah6407'
 airfoil_fin = 'naca0012'
 
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # alpha max =
-clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin) # alpha max =
-
-# print(clalpha_wing(5), clalpha_wing(10))
-# print(clalpha_fin(5), clalpha_fin(10))
+clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # 2412 alpha max = 12 deg
+clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin) # 0012 alpha max = 10.75
 
 def flight_derivatives(state, params):
     """
@@ -145,7 +142,7 @@ while not landed:
     if params['altitude'] < 0:
         landed = True
 
+print(f"Maximum velocity: {max(states['velocity'])} m/s")
 print(f"Vertical speed at touchdown: {params['vertical speed']}")
 print(f"Distance travelled: {params['distance']}")
 plot_flight_states(states)
-plot_alpha(states)
