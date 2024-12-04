@@ -28,14 +28,16 @@ def f_airfoil(alpha, airfoil_name):
     cdarr = np.array([float(value) for value in np.array(arraycsv)[:, 2]])
     alphaarr = np.array([float(value) for value in np.array(arraycsv)[:, 0]])
     clarr = np.array([float(value) for value in np.array(arraycsv)[:, 1]])
+    cmarr = np.array([float(value) for value in np.array(arraycsv)[:, 4]])
     clalpha_interp = sp.interpolate.interp1d(alphaarr, clarr)
     # print(type(alphaarr))
     cd0 = cdarr[np.where(alphaarr == 0.0)]
+    cm = cmarr[np.where(alphaarr == alpha)]
     # print(type(clarr)) 
     # clarr_interp = np.array([]) 
     # for element in alphaarr: 
     #     clarr_interp = np.append(clarr_interp, clalpha_interp(element)) 
-    return clalpha_interp(alpha), cd0
+    return clalpha_interp(alpha), cd0, cm
 
 
 if __name__ == '__main__':
