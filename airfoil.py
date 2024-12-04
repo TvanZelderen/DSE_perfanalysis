@@ -36,7 +36,7 @@ def f_airfoil(airfoil_name, airfoildata = arraycsv):
     cdarr = np.array([float(value) for value in np.array(airfoildata)[:, 2]])
     clalpha_interp = sp.interpolate.interp1d(alphaarr, clarr)
     cmalpha_interp = sp.interpolate.interp1d(alphaarr, cmarr)
-    cd0 = cdarr[np.where(alphaarr == 0.0)]
+    cd0 = float(cdarr[np.where(alphaarr == 0.0)[0][0]])
     # cm = cmarr[np.where(alphaarr == alpha)]
 
     return clalpha_interp, cd0, cmalpha_interp

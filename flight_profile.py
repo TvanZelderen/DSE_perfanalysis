@@ -10,6 +10,11 @@ e = 0.6
 airfoil_wing = 'naca2412'
 airfoil_fin = 'naca0012'
 
+clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # alpha max =
+clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin) # alpha max =
+
+print(clalpha_wing(5), clalpha_wing(10))
+print(clalpha_fin(5), clalpha_fin(10))
 
 def flight_derivatives(state, params):
     """
@@ -72,12 +77,10 @@ S_wing = wingspan * wingchord
 Ar_wing = wingspan ** 2 / S_wing
 
 finspan = 0.1
-finchord = 0.1
-S_fin = finspan * finchord
+fin_cr = 0.1
+fin_ct = 0.1
+S_fin = finspan * (fin_cr + fin_ct) / 2
 Ar_fin = finspan ** 2 / S_fin
-
-# cl_max = 0.65
-# cl_max_alpha = np.deg2rad(5)
 
 states = {
     'time': [],
@@ -103,11 +106,6 @@ velocity_controller = VelocityController(
         max_angle_of_attack=np.deg2rad(15)  # 15 degrees max AoA
     )
 
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing)
-clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin)
-
-print(clalpha_wing(5))
-
 while not landed:
     params['time'] += dt
 
@@ -117,13 +115,13 @@ while not landed:
 
     params['alpha'] = velocity_controller.update(state[0], dt)
 
-    params['induced_drag_fins'] = float(dyn_press * (cd0_fin + clalpha_fin(params['alpha']) ** 2 / (np.pi * e * Ar_fin)) * S_fin)
-    params['induced_drag_wing'] = float(dyn_press * (cd0_wing + clalpha_wing(params['alpha']) ** 2 / (np.pi * e * Ar_wing)) * S_wing)
-    params['drag_body'] = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
-    params['drag'] = params['induced_drag_fins'] + params['induced_drag_wing'] + params['drag_body']
+    cla_fin = float(clalpha_fin(params['alpha']))
+    induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
+    cla_wing = float(clalpha_wing(params['alpha']))
+    induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
+    drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
+    params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
     params['lift'] = dyn_press * clalpha_wing(params['alpha']) * wingspan * wingchord
-    # print(params['induced_drag_fins'], params['induced_drag_wing'], params['drag_body'])
-    # print(params)
     state = rk4_step(state, flight_derivatives, params, dt)
     
     params['vertical speed'] = state[0] * np.sin(state[1])
