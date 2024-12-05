@@ -109,6 +109,7 @@ states = {
     'lift': [],
     'drag': [],
     'turn_angle': [],
+    'load_factor': [],
     'x': [],
     'y': [],
 }
@@ -119,9 +120,9 @@ states = {
 #     )
 
 velocity_controller = ImprovedVelocityController(
-    target_velocity=100,
+    target_velocity=80,
     min_angle_of_attack=np.deg2rad(-7.5),
-    max_angle_of_attack=np.deg2rad(14),
+    max_angle_of_attack=np.deg2rad(14.0),
 )
 
 turn = True
@@ -144,14 +145,16 @@ def initialize_states():
     states['alpha'].append(0)
     states['vertical_speed'].append(0)
     states['turn_angle'].append(0)
+    states['load_factor'].append(0)
     states['x'].append(distance)
     states['y'].append(0)
-export = {
-    'Altitude': [],
-    'velocity': [],
-    'C_L':[], 
-    'Air density':[],
-}
+
+# export = {
+#     'Altitude': [],
+#     'velocity': [],
+#     'C_L':[], 
+#     'Air density':[],
+# }
 
 print("Starting sim...")
 initialize_states()
@@ -207,7 +210,7 @@ while not landed:
         states["turn_angle"].append(current_state["turn_angle"])
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing
 
-    
+    load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
 
     dx = current_state['velocity'] * np.cos(current_state['turn_angle']) * dt
     dy = current_state['velocity'] * np.sin(current_state['turn_angle']) * dt
@@ -217,11 +220,11 @@ while not landed:
     states["lift"].append(lift)
     states["drag"].append(drag)
 
-    if round(current_state['time'], 2) % 1 == 0:
-        export['Air density'].append(density)
-        export['Altitude'].append(altitude)
-        export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
-        export['velocity'].append(state[0])
+    # if round(current_state['time'], 2) % 1 == 0:
+    #     export['Air density'].append(density)
+    #     export['Altitude'].append(altitude)
+    #     export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
+    #     export['velocity'].append(state[0])
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -243,11 +246,12 @@ while not landed:
     states["alpha"].append(alpha)
     states["vertical_speed"].append(vertical_speed)
     states["distance"].append(distance)
+    states["load_factor"].append(load_factor)
     states["x"].append(x)
     states["y"].append(y)
 
-    if current_state["altitude"] < 1000:
-        velocity_controller.target_velocity = 50
+    if current_state["altitude"] < 3000:
+        velocity_controller.target_velocity = 40
 
     if current_state["altitude"] < 0:
         landed = True
@@ -261,4 +265,4 @@ plot_flight_states(states)
 
 # altitude, velocity, cl, density
 
-print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+# print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))

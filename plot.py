@@ -17,6 +17,8 @@ def plot_flight_states(states):
     z_data = states['altitude']
 
     axs["big"].plot3D(x_data, y_data, z_data)
+    axs["big"].set_aspect('equal', adjustable='box')
+    axs["tr"].set_title('Path')
     
     # Velocity plot
     axs["tr"].plot(states['time'], states['velocity'], color='blue')
@@ -63,18 +65,25 @@ def plot_flight_states(states):
     axs["bbl"].set_ylabel('Phi (deg)')
     axs["bbl"].grid(True)
 
-    # Turn plot
+    # Lift plot
     axs["bbm"].plot(states['time'], states['lift'])
     axs["bbm"].set_title('Liftvs Time')
     axs["bbm"].set_xlabel('Time (s)')
     axs["bbm"].set_ylabel('Lift (N)')
     axs["bbm"].grid(True)
 
-    # Turn plot
-    axs["bbr"].plot(states['time'], states['drag'])
-    axs["bbr"].set_title('Drag vs Time')
+    # Drag plot
+    # axs["bbr"].plot(states['time'], states['drag'])
+    # axs["bbr"].set_title('Drag vs Time')
+    # axs["bbr"].set_xlabel('Time (s)')
+    # axs["bbr"].set_ylabel('Drag (N)')
+    # axs["bbr"].grid(True)
+
+    # Load factor plot
+    axs["bbr"].plot(states['time'], states['load_factor'])
+    axs["bbr"].set_title('Load Factor vs Time')
     axs["bbr"].set_xlabel('Time (s)')
-    axs["bbr"].set_ylabel('Drag (N)')
+    axs["bbr"].set_ylabel('Load Factor (-)')
     axs["bbr"].grid(True)
     
     # Adjust layout and display
