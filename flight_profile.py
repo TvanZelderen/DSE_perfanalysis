@@ -5,24 +5,6 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
-# import pandas as pd
-
-
-e = 0.6
-airfoil_wing = "ah6407"
-airfoil_fin = "naca0012"
-
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
-    airfoil_name=airfoil_wing
-)  # 2412 alpha max = 12 deg, ah6407 = -7.5 / 14
-clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
-    airfoil_name=airfoil_fin
-)  # 0012 alpha max = 10.75
-
-
-def simple_cl(aoa):
-    return 1.5376 * aoa / np.deg2rad(11.25)
-
 
 def flight_derivatives(state, params):
     """
@@ -47,7 +29,6 @@ def flight_derivatives(state, params):
     gamma_dot = (L + -W * np.cos(gamma)) / (W / g * V)
 
     return np.array([V_dot, gamma_dot])
-
 
 # Take a step using RK4
 def rk4_step(state_0, derivatives_func, params, dt):
@@ -75,7 +56,6 @@ def rk4_step(state_0, derivatives_func, params, dt):
 dt = 0.01  # time step
 
 # Initial state
-
 altitude = 27000
 distance = 16000
 velocity = 200
@@ -83,17 +63,26 @@ velocity = 200
 mass = 20
 G = 9.81
 
-landed = False
-
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
 wingspan = 1
 wingchord = 0.12
-wing_sweep_angle = 45 # deg
-effective_wingspan = wingspan * np.cos(np.deg2rad(wing_sweep_angle))
+wing_sweep_angle = np.deg2rad(45) # deg
+effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
 Ar_wing = effective_wingspan**2 / S_wing
+
+e = 0.6
+airfoil_wing = "ah6407"
+airfoil_fin = "naca0012"
+
+clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
+    airfoil_name=airfoil_wing
+)
+clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
+    airfoil_name=airfoil_fin
+)
 
 finspan = 0.1
 fin_cr = 0.1
@@ -110,18 +99,17 @@ states = {
     'alpha': [],
     'vertical_speed': [],
     'distance': [],
+    'wing_sweep_angle': [],
+    'ar_wing': [],
     'lift': [],
     'drag': [],
     'turn_angle': [],
     'load_factor': [],
     'x': [],
     'y': [],
+    'air_density': [],
+    'cl': [],
 }
-
-# velocity_controller = VelocityController(
-#         target_velocity=100.0,  # m/s
-#         max_angle_of_attack=np.deg2rad(14)  # 15 degrees max AoA
-#     )
 
 velocity_controller = ImprovedVelocityController(
     target_velocity=80,
@@ -129,9 +117,10 @@ velocity_controller = ImprovedVelocityController(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
+landed = False
 turn = True
 spiral = False
-bank_angle = np.deg2rad(30)
+max_bank_angle = np.deg2rad(30)
 useless_distance = 0
 
 landing_angle = np.deg2rad(15)
@@ -148,6 +137,8 @@ def initialize_states():
     states['gamma'].append(0)
     states['altitude'].append(altitude)
     states['distance'].append(distance)
+    states['wing_sweep_angle'].append(wing_sweep_angle)
+    states['ar_wing'].append(Ar_wing)
     states['lift'].append(0)
     states['drag'].append(0)
     states['alpha'].append(0)
@@ -156,19 +147,12 @@ def initialize_states():
     states['load_factor'].append(0)
     states['x'].append(distance)
     states['y'].append(0)
-
-export = {  
-    'Altitude': [],
-    'velocity': [],
-    'C_L':[], 
-    'Air density':[],
-}
+    states['air_density'].append(0)
+    states['cl'].append(0)
 
 print("Starting sim...")
 initialize_states()
 print("Initialised states")
-
-dynamic_pressures = []
 
 while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
@@ -178,14 +162,10 @@ while not landed:
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
-    dynamic_pressures.append(dyn_press)
-
     alpha = velocity_controller.update(current_state["velocity"], dt)
-    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2):
-        target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-        alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
-        spiral = False
+    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
+        print("Landing sequence started")
 
     cla_fin = float(clalpha_fin(0))
     induced_drag_fins = (
@@ -199,60 +179,39 @@ while not landed:
     drag = induced_drag_fins + induced_drag_wing + drag_body
 
     ########### Turn Implementation ##########
-    if current_state["turn_angle"] >= np.pi:
+    if current_state["turn_angle"] >= np.pi and turn: # Initial turn to 0 x distance
         turn = False
-    if current_state['x'] <= 0 and current_state['altitude'] >= 3000:
+        print("Backtrack turn completed")
+    if current_state['x'] <= 0 and not spiral and not landing_sequence: # Once at 0 x distance, start the spiral down
         spiral = True
-    if 0 < current_state["time"] and (turn or spiral):
-        horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
-        delta_angle = (
-            current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
-        )
-        turn_angle = current_state["turn_angle"] + delta_angle * dt
-        states["turn_angle"].append(turn_angle)
-        horizontal_new = horizontal_speed * np.cos(turn_angle)
-        horizontal_side = horizontal_speed * np.sin(turn_angle)
-        useless_distance += horizontal_side * dt
-        distance = distance = (
-            current_state["distance"] + horizontal_new * dt
-        )  # V * cos(gamma)
-        lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
+        print("Spiral started")
+    if landing_sequence:
+        target_angle = np.arctan2(-current_state['y'], -current_state['x'])
+        alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
+        spiral = False
+
+    bank_angle = 0
+    horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
+    if turn or spiral:
+        bank_angle = - max_bank_angle
     elif landing_sequence:
         if (turn_angle - target_angle) % np.deg2rad(360) < pi: # Turn right
-            horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
-            delta_angle = (
-                current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
-            )
-            turn_angle = current_state["turn_angle"] - delta_angle * dt
-            states["turn_angle"].append(turn_angle)
-            horizontal_new = horizontal_speed * np.cos(turn_angle)
-            horizontal_side = horizontal_speed * np.sin(turn_angle)
-            useless_distance += horizontal_side * dt
-            distance = distance = (
-                current_state["distance"] + horizontal_new * dt
-            )  # V * cos(gamma)
-            lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
+            bank_angle = max_bank_angle
         else: # Turn left
-            horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
-            delta_angle = (
-                current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
-            )
-            turn_angle = current_state["turn_angle"] + delta_angle * dt
-            states["turn_angle"].append(turn_angle)
-            horizontal_new = horizontal_speed * np.cos(turn_angle)
-            horizontal_side = horizontal_speed * np.sin(turn_angle)
-            useless_distance += horizontal_side * dt
-            distance = distance = (
-                current_state["distance"] + horizontal_new * dt
-            )  # V * cos(gamma)
-            lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
-    else:
-        distance = (
-            current_state["distance"]
-            + current_state["velocity"] * np.cos(state[1]) * dt
-        )  # V * cos(gamma)
-        states["turn_angle"].append(current_state["turn_angle"])
-        lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing
+            bank_angle = - max_bank_angle
+    
+    delta_angle = (
+        current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
+    )
+    turn_angle = current_state["turn_angle"] - delta_angle * dt
+    states["turn_angle"].append(turn_angle)
+    horizontal_new = horizontal_speed * np.cos(turn_angle)
+    horizontal_side = horizontal_speed * np.sin(turn_angle)
+    useless_distance += horizontal_side * dt
+    distance = distance = (
+        current_state["distance"] + horizontal_new * dt
+    )  # V * cos(gamma)
+    lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
 
     load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
 
@@ -263,15 +222,6 @@ while not landed:
 
     states["lift"].append(lift)
     states["drag"].append(drag)
-
-
-    # Append data for export
-
-    if round(current_state['time'], 2) % 1 == 0:
-        export['Air density'].append(density)
-        export['Altitude'].append(altitude)
-        export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
-        export['velocity'].append(state[0])
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -297,41 +247,29 @@ while not landed:
     states["x"].append(x)
     states["y"].append(y)
 
+    states["air_density"].append(density)
+    states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
+
     if current_state["altitude"] < 0:
         landed = True
 
-# if 0.999 * np.pi <= states["turn_angle"][-1] <= 1.001 * np.pi:
-#     print('Turning successful')
-# else:
-#     print('Turning unsuccessful')
-
-print(f"Gliding duration:{states["time"][-1]}")
-# print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
+print(f"Flight duration: {round(states["time"][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance used to turn: {useless_distance}")
-print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
-if current_state['distance'] - useless_distance <= 16000: 
-    print('Failed to return')
-else: 
-    print('Return successful')
-
+print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}")
 
 plot_flight_states(states)
 
+export = False
+if export:
+    import pandas as pd
 
-# altitude, velocity, cl, density
+    save_directory = r"output database\Output for Sebas.csv"
 
-# print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+    df = pd.DataFrame({
+        'Velocity': export['velocity'],
+        'Altitude': export['Altitude'],
+        'Air density': export["Air density"],
+        'C_L': export['C_L']
+    })
 
-# save_directory = 'output database\Output for Sebas.csv'
-
-# df = pd.DataFrame({
-#     'Velocity': export['velocity'],
-#     'Altitude': export['Altitude'],
-#     'Air density': export["Air density"],
-#     'C_L': export['C_L']
-# })
-
-# df.to_csv(save_directory, index=False)
-
-
+    df.to_csv(save_directory, index=False)
