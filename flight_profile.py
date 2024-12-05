@@ -161,21 +161,20 @@ while not landed:
         states['turn_angle'].append(turn_angle)
         horizontal_new = horizontal_speed * np.cos(turn_angle)
         distance = distance = current_state['distance'] + horizontal_new * dt # V * cos(gamma)
-        lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord * np.cos(bank_angle)
+        lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
         # lift = dyn_press * simple_cl(alpha) * S_wing * np.cos(bank_angle)
     else:
         distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
         states['turn_angle'].append(current_state['turn_angle'])
-        lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord
+        lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing
         # lift = dyn_press * simple_cl(alpha) * S_wing
     
     states['lift'].append(lift)
     states['drag'].append(drag)
 
-    if round(current_state['time'], 2) % 10 == 0:
-        print(current_state['time'])
-        print(f"Cl wing {float(clalpha_wing(alpha))}")
-        print(f"Cl: {simple_cl(alpha)}, Cd: {launch_vehicle_drag_coef(mach)}")
+    # if round(current_state['time'], 2) % 10 == 0:
+    #     print(f"Time: {current_state['time']}")
+    #     print(f"Alpha: {np.rad2deg(alpha)}, Cl: {clalpha_wing(np.rad2deg(alpha))}, lift: {lift}")
 
     current_state['lift'] = states['lift'][-1]
     current_state['drag'] = states['drag'][-1]
