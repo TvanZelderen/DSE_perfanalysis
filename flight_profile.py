@@ -138,6 +138,9 @@ bank_angle = np.deg2rad(2)
 >>>>>>> Stashed changes
 useless_distance = 0
 
+landing_angle = np.deg2rad(15)
+landing_sequence = False
+
 
 def initialize_states():
     # Set initial conditions
@@ -182,6 +185,11 @@ while not landed:
     dynamic_pressures.append(dyn_press)
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
+    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2):
+        target_angle = np.arctan2(-current_state['y'], -current_state['x'])
+        alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
+        spiral = False
+        landing_sequence = True
 
     cla_fin = float(clalpha_fin(0))
     induced_drag_fins = (
@@ -213,6 +221,35 @@ while not landed:
             current_state["distance"] + horizontal_new * dt
         )  # V * cos(gamma)
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
+    elif landing_sequence:
+        if (turn_angle - target_angle) % np.deg2rad(360) < pi: # Turn right
+            horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
+            delta_angle = (
+                current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
+            )
+            turn_angle = current_state["turn_angle"] - delta_angle * dt
+            states["turn_angle"].append(turn_angle)
+            horizontal_new = horizontal_speed * np.cos(turn_angle)
+            horizontal_side = horizontal_speed * np.sin(turn_angle)
+            useless_distance += horizontal_side * dt
+            distance = distance = (
+                current_state["distance"] + horizontal_new * dt
+            )  # V * cos(gamma)
+            lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
+        else: # Turn left
+            horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
+            delta_angle = (
+                current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
+            )
+            turn_angle = current_state["turn_angle"] + delta_angle * dt
+            states["turn_angle"].append(turn_angle)
+            horizontal_new = horizontal_speed * np.cos(turn_angle)
+            horizontal_side = horizontal_speed * np.sin(turn_angle)
+            useless_distance += horizontal_side * dt
+            distance = distance = (
+                current_state["distance"] + horizontal_new * dt
+            )  # V * cos(gamma)
+            lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
     else:
         distance = (
             current_state["distance"]
@@ -260,10 +297,6 @@ while not landed:
     states["load_factor"].append(load_factor)
     states["x"].append(x)
     states["y"].append(y)
-
-    if current_state["altitude"] < 3000:
-        velocity_controller.target_velocity = 40
-        spiral = False
 
     if current_state["altitude"] < 0:
         landed = True
