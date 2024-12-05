@@ -257,7 +257,9 @@ while not landed:
 print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance travelled: {current_state['distance']}")
+print(f"Distance used to turn: {useless_distance}")
+print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+
 plot_flight_states(states)
 
 
@@ -265,7 +267,7 @@ plot_flight_states(states)
 
 print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
 
-save_directory = 'output database\Output for SeBas.csv'
+save_directory = 'output database\Output for Sebas.csv'
 
 df = pd.DataFrame({
     'Velocity': export['velocity'],
