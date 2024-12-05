@@ -5,6 +5,8 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
+import pandas as pd
+
 
 e = 0.6
 airfoil_wing = "ah6407"
@@ -126,7 +128,7 @@ velocity_controller = ImprovedVelocityController(
 )
 
 turn = True
-bank_angle = np.deg2rad(30)
+bank_angle = np.deg2rad(5)
 useless_distance = 0
 
 
@@ -162,7 +164,7 @@ print("Initialised states")
 
 dynamic_pressures = []
 
-while not landed:
+while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state["velocity"], current_state["gamma"])
 
@@ -256,13 +258,33 @@ while not landed:
     if current_state["altitude"] < 0:
         landed = True
 
+if 0.999 * np.pi <= states["turn_angle"][-1] <= 1.001 * np.pi:
+    print('Turning successful')
+else:
+    print('Turning unsuccessful')
+
 print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance travelled: {current_state['distance']}")
+print(f"Distance used to turn: {useless_distance}")
+print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+
 plot_flight_states(states)
 
 
 # altitude, velocity, cl, density
 
-# print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+
+save_directory = 'output database\Output for Sebas.csv'
+
+df = pd.DataFrame({
+    'Velocity': export['velocity'],
+    'Altitude': export['Altitude'],
+    'Air density': export["Air density"],
+    'C_L': export['C_L']
+})
+
+df.to_csv(save_directory, index=False)
+
+
