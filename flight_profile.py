@@ -5,7 +5,7 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
-import pandas as pd
+# import pandas as pd
 
 
 e = 0.6
@@ -90,8 +90,10 @@ frontal_area = radius**2 * pi
 
 wingspan = 1
 wingchord = 0.12
+wing_sweep_angle = 45 # deg
+effective_wingspan = wingspan * np.cos(np.deg2rad(wing_sweep_angle))
 S_wing = wingspan * wingchord
-Ar_wing = wingspan**2 / S_wing
+Ar_wing = effective_wingspan**2 / S_wing
 
 finspan = 0.1
 fin_cr = 0.1
@@ -128,7 +130,8 @@ velocity_controller = ImprovedVelocityController(
 )
 
 turn = True
-bank_angle = np.deg2rad(5)
+spiral = False
+bank_angle = np.deg2rad(30)
 useless_distance = 0
 
 
@@ -190,7 +193,9 @@ while not landed:
     ########### Turn Implementation ##########
     if current_state["turn_angle"] >= np.pi:
         turn = False
-    if 0 < current_state["time"] and turn:
+    if current_state['x'] <= 0 and current_state['altitude'] >= 3000:
+        spiral = True
+    if 0 < current_state["time"] and (turn or spiral):
         horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
         delta_angle = (
             current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
@@ -254,37 +259,38 @@ while not landed:
 
     if current_state["altitude"] < 3000:
         velocity_controller.target_velocity = 40
+        spiral = False
 
     if current_state["altitude"] < 0:
         landed = True
 
-if 0.999 * np.pi <= states["turn_angle"][-1] <= 1.001 * np.pi:
-    print('Turning successful')
-else:
-    print('Turning unsuccessful')
+# if 0.999 * np.pi <= states["turn_angle"][-1] <= 1.001 * np.pi:
+#     print('Turning successful')
+# else:
+#     print('Turning unsuccessful')
 
 print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance used to turn: {useless_distance}")
-print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+# print(f"Distance used to turn: {useless_distance}")
+# print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
 
 plot_flight_states(states)
 
 
 # altitude, velocity, cl, density
 
-print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+# print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
 
-save_directory = 'output database\Output for Sebas.csv'
+# save_directory = 'output database\Output for Sebas.csv'
 
-df = pd.DataFrame({
-    'Velocity': export['velocity'],
-    'Altitude': export['Altitude'],
-    'Air density': export["Air density"],
-    'C_L': export['C_L']
-})
+# df = pd.DataFrame({
+#     'Velocity': export['velocity'],
+#     'Altitude': export['Altitude'],
+#     'Air density': export["Air density"],
+#     'C_L': export['C_L']
+# })
 
-df.to_csv(save_directory, index=False)
+# df.to_csv(save_directory, index=False)
 
 
