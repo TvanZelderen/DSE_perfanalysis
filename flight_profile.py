@@ -143,7 +143,12 @@ def initialize_states():
     states["vertical_speed"].append(0)
     states["turn_angle"].append(0)
     
-
+export = {
+    'Altitude': [],
+    'velocity': [],
+    'C_L':[], 
+    'Air density':[],
+}
 
 print("Starting sim...")
 initialize_states()
@@ -202,9 +207,11 @@ while not landed:
     states["lift"].append(lift)
     states["drag"].append(drag)
 
-    # if round(current_state['time'], 2) % 10 == 0:
-    #     print(f"Time: {current_state['time']}")
-    #     print(f"Alpha: {np.rad2deg(alpha)}, Cl: {clalpha_wing(np.rad2deg(alpha))}, lift: {lift}")
+    if round(current_state['time'], 2) % 1 == 0:
+        export['Air density'].append(density)
+        export['Altitude'].append(altitude)
+        export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
+        export['velocity'].append(state[0])
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -233,6 +240,7 @@ while not landed:
     if current_state["altitude"] < 0:
         landed = True
 
+print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
 print(f"Distance used for turning: {useless_distance}")
@@ -242,3 +250,5 @@ plot_flight_states(states)
 
 
 # altitude, velocity, cl, density
+
+print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
