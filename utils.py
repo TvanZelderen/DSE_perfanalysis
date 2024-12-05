@@ -38,7 +38,7 @@ def get_isa(altitude):
 def get_local_speed_of_sound(altitude):
     # Speed of sound model (simplified isothermal model)
     gamma = 1.4  # heat capacity ratio
-    R = 287  # specific gas constant for air in J/(kg·K)
+    R = 287.05  # specific gas constant for air in J/(kg·K)
     T = get_isa(altitude)[2]  # temperature in K
     return sqrt(gamma * R * T)  # m/s
 

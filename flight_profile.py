@@ -7,7 +7,7 @@ from velocity_controller import VelocityController
 from airfoil import f_airfoil
 
 e = 0.6
-airfoil_wing = 'naca2412'
+airfoil_wing = 'ah6407'
 airfoil_fin = 'naca0012'
 
 clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # 2412 alpha max = 12 deg
@@ -75,8 +75,8 @@ landed = False
 radius = 0.29 / 2
 frontal_area = radius ** 2 * pi
 
-wingspan = 0.5
-wingchord = 0.1
+wingspan = 1
+wingchord = 0.12
 S_wing = wingspan * wingchord
 Ar_wing = wingspan ** 2 / S_wing
 
@@ -97,6 +97,7 @@ states = {
     'distance': [],
     'lift': [],
     'drag': [],
+    'turn_angle': [],
 }
 
 velocity_controller = VelocityController(
@@ -118,15 +119,47 @@ def initialize_states():
     states['drag'].append(0)
     states['alpha'].append(0)
     states['vertical_speed'].append(0)
+    states['turn_angle'].append(0)
 
 
 print(f"Starting sim...")
 initialize_states()
 print(f"Initialised states")
 
+def initialize_states():
+    # Set initial conditions
+    states['time'].append(0)
+    states['weight'] = [mass * G]
+    states['gravity'] = [G]
+    states['velocity'].append(velocity)
+    states['mach'].append(mach_number(velocity, altitude))
+    states['gamma'].append(0)
+    states['altitude'].append(altitude)
+    states['distance'].append(distance)
+    states['lift'].append(0)
+    states['drag'].append(0)
+    states['alpha'].append(0)
+    states['vertical_speed'].append(0)
+
+
+print(f"Starting sim...")
+initialize_states()
+print(f"Initialised states")
+
+turn = True
+bank_angle = np.radians(60)
+
+turn = True
+bank_angle = np.radians(60)
+
 while not landed:
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state['velocity'], current_state['gamma'])
+
+
+    ########### Turn Implementation ##########
+    if 5 < params['time'] < 100 and turn:
+        params['time'] += dt
 
     pressure, density, temperature = get_isa(current_state['altitude'])
     dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
@@ -172,6 +205,7 @@ while not landed:
     if current_state['altitude'] < 0:
         landed = True
 
+# print(states['gamma'])
 print(f"Maximum velocity: {max(states['velocity'])} m/s")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
 print(f"Distance travelled: {current_state['distance']}")
