@@ -3,7 +3,7 @@ import numpy as np
 from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
 from plot import plot_flight_states, plot_alpha
-from velocity_controller import VelocityController
+from velocity_controller import VelocityController, ImprovedVelocityController
 from airfoil import f_airfoil
 
 e = 0.6
@@ -103,10 +103,16 @@ states = {
     'turn_angle': [],
 }
 
-velocity_controller = VelocityController(
-        target_velocity=100.0,  # m/s
-        max_angle_of_attack=np.deg2rad(7.5)  # 15 degrees max AoA
-    )
+# velocity_controller = VelocityController(
+#         target_velocity=100.0,  # m/s
+#         max_angle_of_attack=np.deg2rad(14)  # 15 degrees max AoA
+#     )
+
+velocity_controller = ImprovedVelocityController(
+    target_velocity=100,
+    min_angle_of_attack=np.deg2rad(-5),
+    max_angle_of_attack=np.deg2rad(14)
+)
 
 turn = True
 bank_angle = np.deg2rad(30)
@@ -132,6 +138,8 @@ print(f"Starting sim...")
 initialize_states()
 print(f"Initialised states")
 
+dynamic_pressures = []
+
 while not landed:
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state['velocity'], current_state['gamma'])
@@ -140,8 +148,11 @@ while not landed:
     dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
     mach = mach_number(current_state['velocity'], current_state['altitude'])
 
+    dynamic_pressures.append(dyn_press)
+
     alpha = - velocity_controller.update(current_state['velocity'], dt)
-    # alpha = np.deg2rad(5)
+    if alpha <= np.deg2rad(-7.5):
+        print("Alpha went wrong here.", alpha)
 
     cla_fin = float(clalpha_fin(0))
     induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
@@ -149,7 +160,6 @@ while not landed:
     induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     drag = induced_drag_fins + induced_drag_wing + drag_body
-    # drag = drag_body
 
     ########### Turn Implementation ##########
     if current_state['turn_angle'] >= np.pi:
@@ -162,12 +172,10 @@ while not landed:
         horizontal_new = horizontal_speed * np.cos(turn_angle)
         distance = distance = current_state['distance'] + horizontal_new * dt # V * cos(gamma)
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
-        # lift = dyn_press * simple_cl(alpha) * S_wing * np.cos(bank_angle)
     else:
         distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
         states['turn_angle'].append(current_state['turn_angle'])
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing
-        # lift = dyn_press * simple_cl(alpha) * S_wing
     
     states['lift'].append(lift)
     states['drag'].append(drag)
@@ -198,12 +206,13 @@ while not landed:
     states['vertical_speed'].append(vertical_speed)
     states['distance'].append(distance)
 
-    if current_state['altitude'] < 3000:
-        velocity_controller.target_velocity = 100
+    if current_state['altitude'] < 1000:
+        velocity_controller.target_velocity = 50
 
     if current_state['altitude'] < 0:
         landed = True
 
+print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
 print(f"Distance travelled: {current_state['distance']}")
 plot_flight_states(states)
