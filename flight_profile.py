@@ -276,7 +276,7 @@ print(f"Position at touchdown: {round(current_state['x']), round(current_state['
 
 if states['velocity'][-1] < (np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha)))):
     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
-    print(f"Warning! Stall.")
+    print(f"\033[31mWarning! Stall.\033[0m")
 
 plot_flight_states(states)
 
