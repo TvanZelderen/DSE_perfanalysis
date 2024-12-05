@@ -4,6 +4,7 @@ from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
+from Landing_controller import landingcontroller
 from airfoil import f_airfoil
 
 def flight_derivatives(state, params):
@@ -117,6 +118,12 @@ velocity_controller = ImprovedVelocityController(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
+landing_controller = landingcontroller(
+    target_angle = np.deg2rad(15),
+    min_angle_of_attack=np.deg2rad(-7.5),
+    max_angle_of_attack=np.deg2rad(14.0),
+)
+
 landed = False
 turn = True
 spiral = False
@@ -162,10 +169,19 @@ while not landed:
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
-    alpha = velocity_controller.update(current_state["velocity"], dt)
-    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
+    if not landing_sequence:
+        alpha = velocity_controller.update(current_state["velocity"], dt)
+    if landing_sequence:
+        # print(current_state['gamma'])
+        alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+        # print(alpha)
+    target_angle = np.arctan2(-current_state['y'], -current_state['x'])
+
+    if current_state['altitude'] <= 5000 and not landing_sequence and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
         landing_sequence = True
         print("Landing sequence started")
+        spiral = False
+        # alpha = np.deg2rad(14)
 
     cla_fin = float(clalpha_fin(0))
     induced_drag_fins = (
@@ -185,10 +201,9 @@ while not landed:
     if current_state['x'] <= 0 and not spiral and not landing_sequence: # Once at 0 x distance, start the spiral down
         spiral = True
         print("Spiral started")
-    if landing_sequence:
-        target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-        alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
-        spiral = False
+    # if landing_sequence:
+        # alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
+        # spiral = False
 
     bank_angle = 0
     horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
@@ -253,9 +268,15 @@ while not landed:
     if current_state["altitude"] < 0:
         landed = True
 
-print(f"Flight duration: {round(states["time"][-1],1)}")
-print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
+print(f"Flight duration: {round(states['time'][-1])} s")
+print(f"Velocity at touchdown: {states['velocity'][-1]} m/s")
+print(f"Vertical speed at touchdown: {current_state['vertical_speed']} m/s")
+print(f"Touchdown angle: {np.rad2deg(states['gamma'][-1])} degrees")
 print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}")
+
+if states['velocity'][-1] < (np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha)))):
+    # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
+    print(f"Warning! Stall.")
 
 plot_flight_states(states)
 
