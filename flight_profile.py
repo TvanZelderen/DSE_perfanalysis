@@ -127,7 +127,7 @@ velocity_controller = ImprovedVelocityController(
 )
 
 turn = True
-bank_angle = np.deg2rad(30)
+bank_angle = np.deg2rad(5)
 useless_distance = 0
 
 
@@ -161,7 +161,7 @@ print("Initialised states")
 
 dynamic_pressures = []
 
-while not landed:
+while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state["velocity"], current_state["gamma"])
 
@@ -253,6 +253,11 @@ while not landed:
 
     if current_state["altitude"] < 0:
         landed = True
+
+if 0.999 * np.pi <= states["turn_angle"][-1] <= 1.001 * np.pi:
+    print('Turning successful')
+else:
+    print('Turning unsuccessful')
 
 print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
