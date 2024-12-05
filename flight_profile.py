@@ -110,7 +110,7 @@ states = {
 
 velocity_controller = ImprovedVelocityController(
     target_velocity=100,
-    min_angle_of_attack=np.deg2rad(-5),
+    min_angle_of_attack=np.deg2rad(-7.5),
     max_angle_of_attack=np.deg2rad(14)
 )
 
@@ -150,9 +150,7 @@ while not landed:
 
     dynamic_pressures.append(dyn_press)
 
-    alpha = - velocity_controller.update(current_state['velocity'], dt)
-    if alpha <= np.deg2rad(-7.5):
-        print("Alpha went wrong here.", alpha)
+    alpha = velocity_controller.update(current_state['velocity'], dt)
 
     cla_fin = float(clalpha_fin(0))
     induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin

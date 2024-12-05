@@ -1,7 +1,7 @@
 import numpy as np
 
 class VelocityController:
-    def __init__(self, target_velocity, min_angle_of_attack=-7.5, max_angle_of_attack=14, 
+    def __init__(self, target_velocity, min_angle_of_attack=0, max_angle_of_attack=14, 
                  Kp=0.01, Ki=0.0001, max_integral_windup=1.0):
         """
         Initialize velocity feedback controller
@@ -107,7 +107,7 @@ class ImprovedVelocityController:
             derivative_error = 0
        
         # PID controller calculation
-        angle_of_attack = (
+        angle_of_attack = - (
             self.Kp * error +            # Proportional term
             self.Ki * self.integral_error +  # Integral term
             self.Kd * derivative_error   # Derivative term
