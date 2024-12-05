@@ -86,7 +86,7 @@ landed = False
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
-wingspan = 1.5
+wingspan = 1
 wingchord = 0.12
 S_wing = wingspan * wingchord
 Ar_wing = wingspan**2 / S_wing
@@ -124,6 +124,7 @@ velocity_controller = ImprovedVelocityController(
 
 turn = True
 bank_angle = np.deg2rad(30)
+useless_distance = 0
 
 
 def initialize_states():
@@ -141,6 +142,7 @@ def initialize_states():
     states["alpha"].append(0)
     states["vertical_speed"].append(0)
     states["turn_angle"].append(0)
+    
 
 
 print("Starting sim...")
@@ -175,7 +177,7 @@ while not landed:
     ########### Turn Implementation ##########
     if current_state["turn_angle"] >= np.pi:
         turn = False
-    if 5 < current_state["time"] and turn:
+    if 0 < current_state["time"] and turn:
         horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
         delta_angle = (
             current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
@@ -183,6 +185,8 @@ while not landed:
         turn_angle = current_state["turn_angle"] + delta_angle * dt
         states["turn_angle"].append(turn_angle)
         horizontal_new = horizontal_speed * np.cos(turn_angle)
+        horizontal_side = horizontal_speed * np.sin(turn_angle)
+        useless_distance += horizontal_side * dt
         distance = distance = (
             current_state["distance"] + horizontal_new * dt
         )  # V * cos(gamma)
@@ -231,5 +235,10 @@ while not landed:
 
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance travelled: {current_state['distance']}")
+print(f"Distance used for turning: {useless_distance}")
+print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+
 plot_flight_states(states)
+
+
+# altitude, velocity, cl, density

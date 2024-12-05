@@ -6,7 +6,7 @@ class ImprovedVelocityController:
         max_angle_of_attack=0,
         Kp=0.01,
         Ki=0.0001,
-        Kd=0.005,
+        Kd=0.01,
         max_integral_windup=1.0,
     ):
         """
