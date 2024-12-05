@@ -130,8 +130,12 @@ velocity_controller = ImprovedVelocityController(
 )
 
 turn = True
+<<<<<<< Updated upstream
 spiral = False
 bank_angle = np.deg2rad(30)
+=======
+bank_angle = np.deg2rad(2)
+>>>>>>> Stashed changes
 useless_distance = 0
 
 
@@ -154,12 +158,12 @@ def initialize_states():
     states['x'].append(distance)
     states['y'].append(0)
 
-# export = {
-#     'Altitude': [],
-#     'velocity': [],
-#     'C_L':[], 
-#     'Air density':[],
-# }
+export = {  
+    'Altitude': [],
+    'velocity': [],
+    'C_L':[], 
+    'Air density':[],
+}
 
 print("Starting sim...")
 initialize_states()
@@ -227,11 +231,11 @@ while not landed:
     states["lift"].append(lift)
     states["drag"].append(drag)
 
-    # if round(current_state['time'], 2) % 1 == 0:
-    #     export['Air density'].append(density)
-    #     export['Altitude'].append(altitude)
-    #     export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
-    #     export['velocity'].append(state[0])
+    if round(current_state['time'], 2) % 1 == 0:
+        export['Air density'].append(density)
+        export['Altitude'].append(altitude)
+        export['C_L'].append(clalpha_wing(np.rad2deg(alpha)))
+        export['velocity'].append(state[0])
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -270,10 +274,20 @@ while not landed:
 #     print('Turning unsuccessful')
 
 print(f"Gliding duration:{states["time"][-1]}")
-print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
+# print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
+<<<<<<< Updated upstream
 # print(f"Distance used to turn: {useless_distance}")
 # print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+=======
+print(f"Distance used to turn: {useless_distance}")
+print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
+if current_state['distance'] - useless_distance <= 16000: 
+    print('Failed to return')
+else: 
+    print('Return successful')
+
+>>>>>>> Stashed changes
 
 plot_flight_states(states)
 
