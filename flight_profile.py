@@ -133,11 +133,6 @@ while not landed:
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state['velocity'], current_state['gamma'])
 
-
-    ########### Turn Implementation ##########
-    if 5 < current_state['time'] < 100 and turn:
-        current_state['time'] += dt
-
     pressure, density, temperature = get_isa(current_state['altitude'])
     dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
     mach = mach_number(current_state['velocity'], current_state['altitude'])
