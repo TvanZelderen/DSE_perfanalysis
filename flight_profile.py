@@ -268,10 +268,10 @@ print(len(export['velocity']), len(export['Altitude']), len(export["Air density"
 save_directory = 'output database\Output for SeBas.csv'
 
 df = pd.DataFrame({
-    'Column1': export['velocity'],
-    'Column2': export['Altitude'],
-    'Column3': export["Air density"],
-    'Column4': export['C_L']
+    'Velocity': export['velocity'],
+    'Altitude': export['Altitude'],
+    'Air density': export["Air density"],
+    'C_L': export['C_L']
 })
 
 df.to_csv(save_directory, index=False)
