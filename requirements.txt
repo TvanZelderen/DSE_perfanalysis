@@ -2,3 +2,4 @@ matplotlib
 numpy
 ruff
 scipy
+pandas
