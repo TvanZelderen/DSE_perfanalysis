@@ -5,6 +5,8 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
+import pandas as pd
+
 
 e = 0.6
 airfoil_wing = "ah6407"
@@ -252,3 +254,16 @@ plot_flight_states(states)
 # altitude, velocity, cl, density
 
 print(len(export['velocity']), len(export['Altitude']), len(export["Air density"]), len(export['C_L']))
+
+save_directory = 'output database\Output for SeBas.csv'
+
+df = pd.DataFrame({
+    'Column1': export['velocity'],
+    'Column2': export['Altitude'],
+    'Column3': export["Air density"],
+    'Column4': export['C_L']
+})
+
+df.to_csv(save_directory, index=False)
+
+
