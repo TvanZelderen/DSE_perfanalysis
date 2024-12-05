@@ -16,7 +16,17 @@ def plot_flight_states(states):
     y_data = states['y']
     z_data = states['altitude']
 
+    r_landzone = 500
+    x_landzone = []
+    y_landzone = []
+    theta = np.arange(0, 6.28, 0.01)
+    for element in theta:
+    # print(x)
+        x_landzone.append(np.cos(element) * r_landzone)
+        y_landzone.append(np.sin(element) * r_landzone)
+
     axs["big"].plot3D(x_data, y_data, z_data)
+    axs["big"].plot3D(x_landzone, y_landzone, 0)
     axs["big"].set_aspect('equal', adjustable='box')
     axs["tr"].set_title('Path')
     

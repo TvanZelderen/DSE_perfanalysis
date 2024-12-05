@@ -130,12 +130,8 @@ velocity_controller = ImprovedVelocityController(
 )
 
 turn = True
-<<<<<<< Updated upstream
 spiral = False
 bank_angle = np.deg2rad(30)
-=======
-bank_angle = np.deg2rad(2)
->>>>>>> Stashed changes
 useless_distance = 0
 
 landing_angle = np.deg2rad(15)
@@ -268,6 +264,9 @@ while not landed:
     states["lift"].append(lift)
     states["drag"].append(drag)
 
+
+    # Append data for export
+
     if round(current_state['time'], 2) % 1 == 0:
         export['Air density'].append(density)
         export['Altitude'].append(altitude)
@@ -309,10 +308,6 @@ while not landed:
 print(f"Gliding duration:{states["time"][-1]}")
 # print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-<<<<<<< Updated upstream
-# print(f"Distance used to turn: {useless_distance}")
-# print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
-=======
 print(f"Distance used to turn: {useless_distance}")
 print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
 if current_state['distance'] - useless_distance <= 16000: 
@@ -320,7 +315,6 @@ if current_state['distance'] - useless_distance <= 16000:
 else: 
     print('Return successful')
 
->>>>>>> Stashed changes
 
 plot_flight_states(states)
 
