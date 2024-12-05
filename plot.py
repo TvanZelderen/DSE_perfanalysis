@@ -9,8 +9,14 @@ def plot_flight_states(states):
     states (dict): Dictionary containing time series data for flight parameters
     """
     # Create a figure with subplots
-    fig, axs = plt.subplot_mosaic([["big", "big", "tr"],["big", "big", "mr"],["bl", "bm", "br"],["bbl", "bbm", "bbr"]], figsize=(12, 12)) # ,["bbl", "bbm", "bbr"]
+    fig, axs = plt.subplot_mosaic([["big", "big", "tr"],["big", "big", "mr"],["bl", "bm", "br"],["bbl", "bbm", "bbr"]], figsize=(12, 12), per_subplot_kw={"big": {'projection': '3d'}}) # ,["bbl", "bbm", "bbr"]
     fig.suptitle('Flight Simulation States', fontsize=16)
+
+    x_data = states['x']
+    y_data = states['y']
+    z_data = states['altitude']
+
+    axs["big"].plot3D(x_data, y_data, z_data)
     
     # Velocity plot
     axs["tr"].plot(states['time'], states['velocity'], color='blue')

@@ -100,17 +100,19 @@ S_fin = finspan * (fin_cr + fin_ct) / 2
 Ar_fin = finspan**2 / S_fin
 
 states = {
-    "time": [],
-    "velocity": [],
-    "gamma": [],
-    "altitude": [],
-    "mach": [],
-    "alpha": [],
-    "vertical_speed": [],
-    "distance": [],
-    "lift": [],
-    "drag": [],
-    "turn_angle": [],
+    'time': [],
+    'velocity': [],
+    'gamma': [],
+    'altitude': [],
+    'mach': [],
+    'alpha': [],
+    'vertical_speed': [],
+    'distance': [],
+    'lift': [],
+    'drag': [],
+    'turn_angle': [],
+    'x': [],
+    'y': [],
 }
 
 # velocity_controller = VelocityController(
@@ -131,20 +133,21 @@ useless_distance = 0
 
 def initialize_states():
     # Set initial conditions
-    states["time"].append(0)
-    states["weight"] = [mass * G]
-    states["gravity"] = [G]
-    states["velocity"].append(velocity)
-    states["mach"].append(mach_number(velocity, altitude))
-    states["gamma"].append(0)
-    states["altitude"].append(altitude)
-    states["distance"].append(distance)
-    states["lift"].append(0)
-    states["drag"].append(0)
-    states["alpha"].append(0)
-    states["vertical_speed"].append(0)
-    states["turn_angle"].append(0)
-    
+    states['time'].append(0)
+    states['weight'] = [mass * G]
+    states['gravity'] = [G]
+    states['velocity'].append(velocity)
+    states['mach'].append(mach_number(velocity, altitude))
+    states['gamma'].append(0)
+    states['altitude'].append(altitude)
+    states['distance'].append(distance)
+    states['lift'].append(0)
+    states['drag'].append(0)
+    states['alpha'].append(0)
+    states['vertical_speed'].append(0)
+    states['turn_angle'].append(0)
+    states['x'].append(distance)
+    states['y'].append(0)
 export = {
     'Altitude': [],
     'velocity': [],
@@ -206,6 +209,13 @@ while not landed:
         states["turn_angle"].append(current_state["turn_angle"])
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing
 
+    
+
+    dx = current_state['velocity'] * np.cos(current_state['turn_angle']) * dt
+    dy = current_state['velocity'] * np.sin(current_state['turn_angle']) * dt
+    x = current_state['x'] + dx
+    y = current_state['y'] + dy
+
     states["lift"].append(lift)
     states["drag"].append(drag)
 
@@ -235,6 +245,8 @@ while not landed:
     states["alpha"].append(alpha)
     states["vertical_speed"].append(vertical_speed)
     states["distance"].append(distance)
+    states["x"].append(x)
+    states["y"].append(y)
 
     if current_state["altitude"] < 1000:
         velocity_controller.target_velocity = 50
@@ -245,9 +257,7 @@ while not landed:
 print(f"Gliding duration:{states["time"][-1]}")
 print(f"Maximum dynamic pressure: {max(dynamic_pressures)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Distance used for turning: {useless_distance}")
-print(f"Effective distance travelled: {current_state['distance'] - useless_distance}")
-
+print(f"Distance travelled: {current_state['distance']}")
 plot_flight_states(states)
 
 
