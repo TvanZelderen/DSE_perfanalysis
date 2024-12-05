@@ -126,27 +126,6 @@ print(f"Starting sim...")
 initialize_states()
 print(f"Initialised states")
 
-def initialize_states():
-    # Set initial conditions
-    states['time'].append(0)
-    states['weight'] = [mass * G]
-    states['gravity'] = [G]
-    states['velocity'].append(velocity)
-    states['mach'].append(mach_number(velocity, altitude))
-    states['gamma'].append(0)
-    states['altitude'].append(altitude)
-    states['distance'].append(distance)
-    states['lift'].append(0)
-    states['drag'].append(0)
-    states['alpha'].append(0)
-    states['vertical_speed'].append(0)
-    states['turn_angle'].append(0)
-
-
-print(f"Starting sim...")
-initialize_states()
-print(f"Initialised states")
-
 turn = True
 bank_angle = np.radians(60)
 
