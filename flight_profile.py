@@ -59,10 +59,17 @@ def rk4_step(state_0, derivatives_func, params, dt):
     
     return state_1
 
-# Initial state
-state = np.array([200.0, np.deg2rad(0)])  # [V, gamma]
-time = 0 
 dt = 0.01  # time step
+
+# Initial state
+
+altitude = 27000
+distance = 16000
+velocity = 200
+
+mass = 20
+G = 9.81
+
 landed = False
 
 radius = 0.29 / 2
@@ -86,59 +93,86 @@ states = {
     'altitude': [],
     'mach': [],
     'alpha': [],
+    'vertical_speed': [],
+    'distance': [],
+    'lift': [],
+    'drag': [],
 }
-
-params = {
-        'weight': 20 * 9.81, # kg
-        'gravity': 9.81,  # m/s^2
-        'altitude': 27000, # m
-        'alpha': np.deg2rad(5),
-        'time': 0,
-        'distance': 0,
-        'vertical speed': 0,
-    }
 
 velocity_controller = VelocityController(
         target_velocity=100.0,  # m/s
-        max_angle_of_attack=np.deg2rad(15)  # 15 degrees max AoA
+        max_angle_of_attack=np.deg2rad(12)  # 15 degrees max AoA
     )
 
+def initialize_states():
+    # Set initial conditions
+    states['time'].append(0)
+    states['weight'] = [mass * G]
+    states['gravity'] = [G]
+    states['velocity'].append(velocity)
+    states['mach'].append(mach_number(velocity, altitude))
+    states['gamma'].append(0)
+    states['altitude'].append(altitude)
+    states['distance'].append(distance)
+    states['lift'].append(0)
+    states['drag'].append(0)
+    states['alpha'].append(0)
+    states['vertical_speed'].append(0)
+
+
+print(f"Starting sim...")
+initialize_states()
+print(f"Initialised states")
+
 while not landed:
-    params['time'] += dt
+    current_state = {key: value[-1] for key, value in states.items()}
+    state = (current_state['velocity'], current_state['gamma'])
 
-    pressure, density, temperature = get_isa(params['altitude'])
-    dyn_press = dynamic_pressure(state[0], params['altitude'])
-    mach = mach_number(state[0], params['altitude'])
+    pressure, density, temperature = get_isa(current_state['altitude'])
+    dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
+    mach = mach_number(current_state['velocity'], current_state['altitude'])
 
-    params['alpha'] = velocity_controller.update(state[0], dt)
+    alpha = velocity_controller.update(current_state['velocity'], dt)
 
-    cla_fin = float(clalpha_fin(params['alpha']))
+    cla_fin = float(clalpha_fin(alpha))
     induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
-    cla_wing = float(clalpha_wing(params['alpha']))
+    cla_wing = float(clalpha_wing(alpha))
     induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
-    params['drag'] = induced_drag_fins + induced_drag_wing + drag_body
-    params['lift'] = dyn_press * clalpha_wing(params['alpha']) * wingspan * wingchord
-    state = rk4_step(state, flight_derivatives, params, dt)
+    drag = induced_drag_fins + induced_drag_wing + drag_body
+    lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord
+
+    states['lift'].append(lift)
+    states['drag'].append(drag)
+
+    current_state['lift'] = states['lift'][-1]
+    current_state['drag'] = states['drag'][-1]
+
+    state = rk4_step(state, flight_derivatives, current_state, dt)
+
+    time = current_state['time'] + dt
     
-    params['vertical speed'] = state[0] * np.sin(state[1])
-    params['altitude'] += params['vertical speed'] * dt # V * sin(gamma)
-    params['distance'] += state[0] * np.cos(state[1]) * dt # V * cos(gamma)
+    vertical_speed = state[0] * np.sin(state[1])
+    altitude = current_state['altitude'] + vertical_speed * dt # V * sin(gamma)
+    distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
 
-    states['time'].append(params['time'])
+    # Append states
+    states['time'].append(time)
     states['velocity'].append(state[0])
-    states['gamma'].append(np.rad2deg(state[1]))
-    states['altitude'].append(params['altitude'])
+    states['gamma'].append(state[1])
+    states['altitude'].append(altitude)
     states['mach'].append(mach)
-    states['alpha'].append(np.rad2deg(params['alpha']))
+    states['alpha'].append(alpha)
+    states['vertical_speed'].append(vertical_speed)
+    states['distance'].append(distance)
 
-    if params['altitude'] < 3000:
+    if current_state['altitude'] < 3000:
         velocity_controller.target_velocity = 30
 
-    if params['altitude'] < 0:
+    if current_state['altitude'] < 0:
         landed = True
 
 print(f"Maximum velocity: {max(states['velocity'])} m/s")
-print(f"Vertical speed at touchdown: {params['vertical speed']}")
-print(f"Distance travelled: {params['distance']}")
+print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
+print(f"Distance travelled: {current_state['distance']}")
 plot_flight_states(states)
