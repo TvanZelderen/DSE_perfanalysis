@@ -45,6 +45,13 @@ def plot_flight_states(states):
     axs["mr"].set_xlabel('Time (s)')
     axs["mr"].set_ylabel('Alpha (deg)')
     axs["mr"].grid(True)
+
+    # Turn plot
+    axs["big"].plot(states['time'], states['turn_angle'])
+    axs["big"].set_title('Turn vs Time')
+    axs["big"].set_xlabel('Time (s)')
+    axs["big"].set_ylabel('Phi (deg)')
+    axs["big"].grid(True)
     
     # Adjust layout and display
     plt.tight_layout()

@@ -140,14 +140,12 @@ def initialize_states():
     states['drag'].append(0)
     states['alpha'].append(0)
     states['vertical_speed'].append(0)
+    states['turn_angle'].append(0)
 
 
 print(f"Starting sim...")
 initialize_states()
 print(f"Initialised states")
-
-turn = True
-bank_angle = np.radians(60)
 
 turn = True
 bank_angle = np.radians(60)
@@ -158,8 +156,8 @@ while not landed:
 
 
     ########### Turn Implementation ##########
-    if 5 < params['time'] < 100 and turn:
-        params['time'] += dt
+    if 5 < current_state['time'] < 100 and turn:
+        current_state['time'] += dt
 
     pressure, density, temperature = get_isa(current_state['altitude'])
     dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
@@ -185,9 +183,24 @@ while not landed:
 
     time = current_state['time'] + dt
     
+    ########### Turn Implementation ##########
+    if current_state['turn_angle'] >= np.pi:
+        turn = False
+    if 5 < current_state['time'] and turn:
+        horizontal_speed = current_state['velocity'] * np.cos(current_state['gamma'])
+        delta_angle = current_state['gravity'] * np.tan(bank_angle) / current_state['velocity']
+        turn_angle = delta_angle * dt
+        states['turn_angle'].append(turn_angle)
+        horizontal_new = horizontal_speed * np.cos(turn_angle)
+        distance = distance = current_state['distance'] + horizontal_new * dt # V * cos(gamma)
+    else:
+        distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
+        states['turn_angle'].append(current_state['turn_angle'])
+
+
     vertical_speed = state[0] * np.sin(state[1])
     altitude = current_state['altitude'] + vertical_speed * dt # V * sin(gamma)
-    distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
+    
 
     # Append states
     states['time'].append(time)
