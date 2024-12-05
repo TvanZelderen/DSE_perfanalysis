@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 def plot_flight_states(states):
     """
@@ -19,7 +20,8 @@ def plot_flight_states(states):
     axs["tr"].grid(True)
     
     # Flight Path Angle plot
-    axs["bm"].plot(states['time'], states['gamma'], color='green')
+    gamma = [np.rad2deg(x) for x in states['gamma']]
+    axs["bm"].plot(states['time'], gamma, color='green')
     axs["bm"].set_title('Flight Path Angle vs Time')
     axs["bm"].set_xlabel('Time (s)')
     axs["bm"].set_ylabel('Flight Path Angle (deg)')
@@ -40,14 +42,16 @@ def plot_flight_states(states):
     axs["bl"].grid(True)
 
     # Alpha plot
-    axs["mr"].plot(states['time'], states['alpha'])
+    alpha = [np.rad2deg(x) for x in states['alpha']]
+    axs["mr"].plot(states['time'], alpha)
     axs["mr"].set_title('Alpha vs Time')
     axs["mr"].set_xlabel('Time (s)')
     axs["mr"].set_ylabel('Alpha (deg)')
     axs["mr"].grid(True)
 
     # Turn plot
-    axs["big"].plot(states['time'], states['turn_angle'])
+    bank = [np.rad2deg(x) for x in states['turn_angle']]
+    axs["big"].plot(states['time'], bank)
     axs["big"].set_title('Turn vs Time')
     axs["big"].set_xlabel('Time (s)')
     axs["big"].set_ylabel('Phi (deg)')

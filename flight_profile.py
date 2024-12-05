@@ -189,7 +189,7 @@ while not landed:
     if 5 < current_state['time'] and turn:
         horizontal_speed = current_state['velocity'] * np.cos(current_state['gamma'])
         delta_angle = current_state['gravity'] * np.tan(bank_angle) / current_state['velocity']
-        turn_angle = delta_angle * dt
+        turn_angle = current_state['turn_angle'] + delta_angle * dt
         states['turn_angle'].append(turn_angle)
         horizontal_new = horizontal_speed * np.cos(turn_angle)
         distance = distance = current_state['distance'] + horizontal_new * dt # V * cos(gamma)
