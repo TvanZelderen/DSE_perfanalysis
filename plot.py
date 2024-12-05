@@ -9,7 +9,7 @@ def plot_flight_states(states):
     states (dict): Dictionary containing time series data for flight parameters
     """
     # Create a figure with subplots
-    fig, axs = plt.subplot_mosaic([["big", "big", "tr"],["big", "big", "mr"],["bl", "bm", "br"]], figsize=(12, 12)) # ,["bbl", "bbm", "bbr"]
+    fig, axs = plt.subplot_mosaic([["big", "big", "tr"],["big", "big", "mr"],["bl", "bm", "br"],["bbl", "bbm", "bbr"]], figsize=(12, 12)) # ,["bbl", "bbm", "bbr"]
     fig.suptitle('Flight Simulation States', fontsize=16)
     
     # Velocity plot
@@ -51,11 +51,25 @@ def plot_flight_states(states):
 
     # Turn plot
     bank = [np.rad2deg(x) for x in states['turn_angle']]
-    axs["big"].plot(states['time'], bank)
-    axs["big"].set_title('Turn vs Time')
-    axs["big"].set_xlabel('Time (s)')
-    axs["big"].set_ylabel('Phi (deg)')
-    axs["big"].grid(True)
+    axs["bbl"].plot(states['time'], bank)
+    axs["bbl"].set_title('Turn vs Time')
+    axs["bbl"].set_xlabel('Time (s)')
+    axs["bbl"].set_ylabel('Phi (deg)')
+    axs["bbl"].grid(True)
+
+    # Turn plot
+    axs["bbm"].plot(states['time'], states['lift'])
+    axs["bbm"].set_title('Liftvs Time')
+    axs["bbm"].set_xlabel('Time (s)')
+    axs["bbm"].set_ylabel('Lift (N)')
+    axs["bbm"].grid(True)
+
+    # Turn plot
+    axs["bbr"].plot(states['time'], states['drag'])
+    axs["bbr"].set_title('Drag vs Time')
+    axs["bbr"].set_xlabel('Time (s)')
+    axs["bbr"].set_ylabel('Drag (N)')
+    axs["bbr"].grid(True)
     
     # Adjust layout and display
     plt.tight_layout()

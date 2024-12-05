@@ -1,5 +1,5 @@
 class VelocityController:
-    def __init__(self, target_velocity, max_angle_of_attack, 
+    def __init__(self, target_velocity, min_angle_of_attack=-7.5, max_angle_of_attack=14, 
                  Kp=0.1, Ki=0.01, max_integral_windup=1.0):
         """
         Initialize velocity feedback controller
@@ -12,6 +12,7 @@ class VelocityController:
         - max_integral_windup: Limit for integral term to prevent wind-up
         """
         self.target_velocity = target_velocity
+        self.min_angle_of_attack = min_angle_of_attack
         self.max_angle_of_attack = max_angle_of_attack
         self.Kp = Kp  # Proportional gain
         self.Ki = Ki  # Integral gain

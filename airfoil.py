@@ -38,11 +38,15 @@ def f_airfoil(airfoil_name):
     cmalpha_interp = sp.interpolate.interp1d(alphaarr, cmarr)
     cd0 = float(cdarr[np.where(alphaarr == 0.0)[0][0]])
     # cm = cmarr[np.where(alphaarr == alpha)]
-    print(cd0)
+    # print(cd0)
     return clalpha_interp, cd0, cmalpha_interp
 
 if __name__ == '__main__':
-    print(f_airfoil(airfoil_name))
+    airfoil_wing = 'ah6407'
+    clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing)
+
+    for aoa in range(-10,11):
+        print(clalpha_wing(aoa))
 
 
 # print(data_wing[])

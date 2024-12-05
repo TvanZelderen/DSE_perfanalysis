@@ -10,8 +10,11 @@ e = 0.6
 airfoil_wing = 'ah6407'
 airfoil_fin = 'naca0012'
 
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # 2412 alpha max = 12 deg
+clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(airfoil_name = airfoil_wing) # 2412 alpha max = 12 deg, ah6407 = -7.5 / 14
 clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(airfoil_name = airfoil_fin) # 0012 alpha max = 10.75
+
+def simple_cl(aoa):
+    return 1.5376 * aoa / np.deg2rad(11.25)
 
 def flight_derivatives(state, params):
     """
@@ -75,7 +78,7 @@ landed = False
 radius = 0.29 / 2
 frontal_area = radius ** 2 * pi
 
-wingspan = 1
+wingspan = 1.5
 wingchord = 0.12
 S_wing = wingspan * wingchord
 Ar_wing = wingspan ** 2 / S_wing
@@ -102,8 +105,11 @@ states = {
 
 velocity_controller = VelocityController(
         target_velocity=100.0,  # m/s
-        max_angle_of_attack=np.deg2rad(12)  # 15 degrees max AoA
+        max_angle_of_attack=np.deg2rad(7.5)  # 15 degrees max AoA
     )
+
+turn = True
+bank_angle = np.deg2rad(30)
 
 def initialize_states():
     # Set initial conditions
@@ -126,9 +132,6 @@ print(f"Starting sim...")
 initialize_states()
 print(f"Initialised states")
 
-turn = True
-bank_angle = np.radians(60)
-
 while not landed:
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state['velocity'], current_state['gamma'])
@@ -137,26 +140,17 @@ while not landed:
     dyn_press = dynamic_pressure(current_state['velocity'], current_state['altitude'])
     mach = mach_number(current_state['velocity'], current_state['altitude'])
 
-    alpha = velocity_controller.update(current_state['velocity'], dt)
+    alpha = - velocity_controller.update(current_state['velocity'], dt)
+    # alpha = np.deg2rad(5)
 
-    cla_fin = float(clalpha_fin(alpha))
+    cla_fin = float(clalpha_fin(0))
     induced_drag_fins = dyn_press * (cd0_fin + cla_fin ** 2 / (np.pi * e * Ar_fin)) * S_fin
     cla_wing = float(clalpha_wing(alpha))
     induced_drag_wing = dyn_press * (cd0_wing + cla_wing ** 2 / (np.pi * e * Ar_wing)) * S_wing
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     drag = induced_drag_fins + induced_drag_wing + drag_body
-    lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord
+    # drag = drag_body
 
-    states['lift'].append(lift)
-    states['drag'].append(drag)
-
-    current_state['lift'] = states['lift'][-1]
-    current_state['drag'] = states['drag'][-1]
-
-    state = rk4_step(state, flight_derivatives, current_state, dt)
-
-    time = current_state['time'] + dt
-    
     ########### Turn Implementation ##########
     if current_state['turn_angle'] >= np.pi:
         turn = False
@@ -167,14 +161,33 @@ while not landed:
         states['turn_angle'].append(turn_angle)
         horizontal_new = horizontal_speed * np.cos(turn_angle)
         distance = distance = current_state['distance'] + horizontal_new * dt # V * cos(gamma)
+        lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord * np.cos(bank_angle)
+        # lift = dyn_press * simple_cl(alpha) * S_wing * np.cos(bank_angle)
     else:
         distance = current_state['distance'] + current_state['velocity'] * np.cos(state[1]) * dt # V * cos(gamma)
         states['turn_angle'].append(current_state['turn_angle'])
+        lift = dyn_press * clalpha_wing(alpha) * wingspan * wingchord
+        # lift = dyn_press * simple_cl(alpha) * S_wing
+    
+    states['lift'].append(lift)
+    states['drag'].append(drag)
 
+    if round(current_state['time'], 2) % 10 == 0:
+        print(current_state['time'])
+        print(f"Cl wing {float(clalpha_wing(alpha))}")
+        print(f"Cl: {simple_cl(alpha)}, Cd: {launch_vehicle_drag_coef(mach)}")
+
+    current_state['lift'] = states['lift'][-1]
+    current_state['drag'] = states['drag'][-1]
+
+
+    # Integrate velocity and gamma
+    state = rk4_step(state, flight_derivatives, current_state, dt)
 
     vertical_speed = state[0] * np.sin(state[1])
-    altitude = current_state['altitude'] + vertical_speed * dt # V * sin(gamma)
+    altitude = current_state['altitude'] + vertical_speed * dt
     
+    time = current_state['time'] + dt
 
     # Append states
     states['time'].append(time)
@@ -187,13 +200,11 @@ while not landed:
     states['distance'].append(distance)
 
     if current_state['altitude'] < 3000:
-        velocity_controller.target_velocity = 30
+        velocity_controller.target_velocity = 100
 
     if current_state['altitude'] < 0:
         landed = True
 
-# print(states['gamma'])
-print(f"Maximum velocity: {max(states['velocity'])} m/s")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
 print(f"Distance travelled: {current_state['distance']}")
 plot_flight_states(states)
