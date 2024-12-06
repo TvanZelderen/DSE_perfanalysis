@@ -150,15 +150,8 @@ landing_controller = landingcontroller(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
-landing_controller = landingcontroller(
-    target_angle = np.deg2rad(15),
-    min_angle_of_attack=np.deg2rad(-7.5),
-    max_angle_of_attack=np.deg2rad(14.0),
-)
-
 max_bank_angle = np.deg2rad(30)
 landing_angle = np.deg2rad(15)
-
 
 def initialize_states():
     # Set initial conditions
