@@ -320,8 +320,8 @@ print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}"
 
 plot_flight_states(states)
 
-print(f"Max fin torque: {max_fin_torque(states, cmalpha_fin):.4f} Nm")
-print(f"Maximum lift: {max(states['lift']):.2f} N")
+# print(f"Max fin torque: {max_fin_torque(states, cmalpha_fin):.4f} Nm")
+# print(f"Maximum drag: {max(states['drag']):.2f} N")
 
 export = False
 if export:
