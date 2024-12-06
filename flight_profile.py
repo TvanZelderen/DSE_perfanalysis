@@ -203,7 +203,7 @@ while not landed:
         turn = False
         print("Backtrack turn completed")
 
-    # If at x=0 and not in turn or landing sequence, perform spiral descent, un-constrain turn angle
+    # If at x=0 and not in turn or landing sequence, perform spiral descent, remove constrain on turn angle
     if current_state['x'] <= 0 and not spiral and not landing_sequence: 
         spiral = True
         print("Spiral started")
