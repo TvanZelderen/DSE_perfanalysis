@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import scipy as sp
 import os
 import airfoil_database
+from functools import cache
 
 ############################################## Read Instructions #############################################
 ############################################## Read Instructions #############################################
@@ -20,7 +21,7 @@ wing_folder = 'airfoil_database'   ### Folder directory for Keyan ###
 airfoil_name = 'naca2412'  ## airfoil name, keep it consistent with your file naming ##
 reynolds = '100k'  ## reynolds number for the airfoil, keep it consistent with the data that you downloaded
 
-
+@cache
 def f_airfoil(airfoil_name):
     file_name = airfoil_name + '-' + reynolds + '.csv'
     wing_path = os.path.join(wing_folder, file_name)

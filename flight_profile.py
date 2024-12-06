@@ -95,6 +95,7 @@ e = 0.6
 airfoil_wing = "ah6407"
 airfoil_fin = "naca0012"
 
+
 clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
     airfoil_name=airfoil_wing
 )
