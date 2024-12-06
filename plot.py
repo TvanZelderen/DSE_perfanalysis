@@ -77,7 +77,7 @@ def plot_flight_states(states):
 
     # Lift plot
     axs["bbm"].plot(states['time'], states['lift'])
-    axs["bbm"].set_title('Liftvs Time')
+    axs["bbm"].set_title('Lift vs Time')
     axs["bbm"].set_xlabel('Time (s)')
     axs["bbm"].set_ylabel('Lift (N)')
     axs["bbm"].grid(True)

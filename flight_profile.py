@@ -316,7 +316,7 @@ def run_sim(states):
 run_sim(states)
 
 run_time = perf_counter() - start
-print(f"Runtime of simulation: {run_time:.2f}")
+print(f"Runtime of simulation: {run_time:.2f} s")
 
 print(f"Flight duration: {round(states["time"][-1],1)}")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]}")
@@ -329,6 +329,7 @@ print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}"
 plot_flight_states(states)
 
 print(f"Max fin torque: {max_fin_torque(states, cmalpha_fin)}")
+print(f"Maximum lift: {max(states['lift'])}")
 
 export = False
 if export:
