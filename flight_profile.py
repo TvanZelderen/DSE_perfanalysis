@@ -4,6 +4,7 @@ from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
+from Landing_controller import landingcontroller
 from airfoil import f_airfoil
 from functools import cache
 from time import perf_counter
@@ -143,6 +144,18 @@ velocity_controller = ImprovedVelocityController(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
+landing_controller = landingcontroller(
+    target_angle = np.deg2rad(15),
+    min_angle_of_attack=np.deg2rad(-7.5),
+    max_angle_of_attack=np.deg2rad(14.0),
+)
+
+landing_controller = landingcontroller(
+    target_angle = np.deg2rad(15),
+    min_angle_of_attack=np.deg2rad(-7.5),
+    max_angle_of_attack=np.deg2rad(14.0),
+)
+
 max_bank_angle = np.deg2rad(30)
 landing_angle = np.deg2rad(15)
 
@@ -186,10 +199,22 @@ def run_sim(states):
         dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
         mach = mach_number(current_state["velocity"], current_state["altitude"])
 
-        alpha = velocity_controller.update(current_state["velocity"], dt)
-        if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not manoeuvres['landing_sequence']:
+        #############################################################################################
+        # If landing sequence is not initialised, use velocity controller to control velocity
+        if not manoeuvres['landing_sequence']: 
+            alpha = velocity_controller.update(current_state["velocity"], dt)
+        
+        # If landing sequence is initialised, use landing controller to control landing angle
+        if manoeuvres['landing_sequence']: 
+            alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+
+        target_angle = np.arctan2(-current_state['y'], -current_state['x']) # Target angle from LAUNCH Ring to landing site
+
+        # Attempt to initialise landing sequence when altitude is lower than 5000m, first find the best angle
+        if current_state['altitude'] <= 5000 and not manoeuvres['landing_sequence'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
             manoeuvres['landing_sequence'] = True
             print("Landing sequence started")
+            manoeuvres['spiral'] = False
 
         cla_fin = float(clalpha_fin(0))
         induced_drag_fins = (
@@ -202,30 +227,37 @@ def run_sim(states):
         drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
         drag = induced_drag_fins + induced_drag_wing + drag_body
 
-        ########### Turn Implementation ##########
         if current_state['time'] > manoeuvres['turn_delay'] and current_state['turn_angle'] == 0:
             manoeuvres['turn'] = True
+            print("Backtrack turn started")
+
+        # Stops turning when the turn angle reaches 180 degrees
         if current_state["turn_angle"] >= np.pi and manoeuvres['turn']: # Initial turn to 0 x distance
             manoeuvres['turn'] = False
             print("Backtrack turn completed")
-        if current_state['x'] <= 0 and not manoeuvres['spiral'] and not manoeuvres['landing_sequence']: # Once at 0 x distance, start the spiral down
+
+        # If at x=0 and not in turn or landing sequence, perform spiral descent, remove constrain on turn angle
+        if current_state['x'] <= 0 and not manoeuvres['spiral'] and not manoeuvres['landing_sequence']: 
             manoeuvres['spiral'] = True
             print("Spiral started")
-        if manoeuvres['landing_sequence']:
-            target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-            alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
-            manoeuvres['spiral'] = False
+
+        # if landing_sequence:
+            # alpha = np.deg2rad(14/1.69) # Target velocity = 1.3 V_s
+            # spiral = False
 
         bank_angle = 0
         horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
+
         if manoeuvres['turn'] or manoeuvres['spiral']:
             bank_angle = - max_bank_angle
+        # After exiting the spiral, turn left or right to correct the direction
         elif manoeuvres['landing_sequence']:
-            if (turn_angle - target_angle) % np.deg2rad(360) < pi: # Turn right
+            if (turn_angle - target_angle) % np.deg2rad(360) < pi:  # Turn right
                 bank_angle = max_bank_angle
-            else: # Turn left
+            else:                                                   # Turn left
                 bank_angle = - max_bank_angle
         
+        # Universal turning calculation for any given bank angle
         delta_angle = (
             current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
         )
@@ -237,9 +269,10 @@ def run_sim(states):
             current_state["distance"] + horizontal_new * dt
         )
         lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(bank_angle)
-
         load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
+        ###########################################################################################
 
+        # Update position
         dx = current_state['velocity'] * np.cos(state[1]) * np.cos(current_state['turn_angle']) * dt
         dy = current_state['velocity'] * np.cos(state[1]) * np.sin(current_state['turn_angle']) * dt
         x = current_state['x'] + dx
@@ -288,6 +321,10 @@ print(f"Runtime of simulation: {run_time:.2f}")
 print(f"Flight duration: {round(states["time"][-1],1)}")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]}")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
+
+# if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
+#     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
+#     print(f"\033[31mWarning! Stall.\033[0m")
 
 plot_flight_states(states)
 
