@@ -6,7 +6,6 @@ from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from Landing_controller import landingcontroller
 from airfoil import f_airfoil
-from functools import cache
 from time import perf_counter
 
 def flight_derivatives(state, params):
@@ -189,7 +188,6 @@ print("Initialised states")
 
 start = perf_counter()
 
-# @cache
 def run_sim(states):
     while not manoeuvres['landed']: 
         current_state = {key: value[-1] for key, value in states.items()}
