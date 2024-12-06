@@ -318,8 +318,8 @@ run_sim(states)
 run_time = perf_counter() - start
 print(f"Runtime of simulation: {run_time:.2f} s")
 
-print(f"Flight duration: {round(states["time"][-1],1)}")
-print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]}")
+print(f"Flight duration: {round(states["time"][-1],1)} s")
+print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
 
 # if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
@@ -328,8 +328,8 @@ print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}"
 
 plot_flight_states(states)
 
-print(f"Max fin torque: {max_fin_torque(states, cmalpha_fin)}")
-print(f"Maximum lift: {max(states['lift'])}")
+print(f"Max fin torque: {max_fin_torque(states, cmalpha_fin):.4f} Nm")
+print(f"Maximum lift: {max(states['lift']):.2f} N")
 
 export = False
 if export:
