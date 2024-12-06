@@ -1,19 +1,19 @@
 import numpy as np
-from airfoil import f_airfoil
+import os
 from matplotlib import pyplot as plt
+import csv
 
+read_directory = "E:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoil_result"
 
-r_landzone = 500
-x_landzone = []
-y_landzone = []
-theta = np.arange(0, 6.28, 0.01)
-for element in theta:
-    # print(x)
-    x_landzone.append(np.cos(element) * r_landzone)
-    y_landzone.append(np.sin(element) * r_landzone)
+output_directory = 'E:/Github/DSE_perfanalysis/airfoil_database'
 
-print(len(y_landzone), len(x_landzone))
+for filename in os.listdir(read_directory):
+    input_file_path = os.path.join(read_directory, filename)
+    output_file_path = os.path.join(output_directory, filename.replace('.txt', '.csv'))
+    with open(input_file_path, 'r') as txt_file, open(output_file_path, 'w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        for line in txt_file:
+        # Split the line into columns (adjust delimiter as needed)
+            columns = line.split()  # Default splits by any whitespace
+            csv_writer.writerow(columns)
 
-plt.figure()
-plt.plot(x_landzone, y_landzone)
-plt.show()
