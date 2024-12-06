@@ -7,6 +7,7 @@ from velocity_controller import ImprovedVelocityController
 from Landing_controller import landingcontroller
 from airfoil import f_airfoil
 from time import perf_counter
+import math
 
 def flight_derivatives(state, params):
     """
@@ -135,6 +136,7 @@ manoeuvres = {
     'turn_delay': 5,
     'turn': False,
     'spiral': False,
+    'pre-landing': False,
     'landing_sequence': False,
 }
 
@@ -150,6 +152,7 @@ landing_controller = landingcontroller(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
+target_glide_angle = np.deg2rad(15)
 max_bank_angle = np.deg2rad(30)
 landing_angle = np.deg2rad(15)
 
@@ -184,6 +187,7 @@ start = perf_counter()
 
 def run_sim(states):
     while not manoeuvres['landed']: 
+        
         current_state = {key: value[-1] for key, value in states.items()}
         state = (current_state["velocity"], current_state["gamma"])
 
@@ -193,19 +197,19 @@ def run_sim(states):
 
         #############################################################################################
         # If landing sequence is not initialised, use velocity controller to control velocity
-        if not manoeuvres['landing_sequence']: 
+        if not (manoeuvres['landing_sequence'] and manoeuvres['pre-landing']): 
             alpha = velocity_controller.update(current_state["velocity"], dt)
         
         # If landing sequence is initialised, use landing controller to control landing angle
-        if manoeuvres['landing_sequence']: 
-            alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+        # if manoeuvres['landing_sequence']: 
+        #     alpha = landing_controller.update(current_state["gamma"], dt, alpha)
 
-        target_angle = np.arctan2(-current_state['y'], -current_state['x']) # Target angle from LAUNCH Ring to landing site
+        target_angle = np.arctan2(np.abs(current_state['y']), np.abs(current_state['x'])) # Target angle from LAUNCH Ring to landing site
 
-        # Attempt to initialise landing sequence when altitude is lower than 5000m, first find the best angle
-        if current_state['altitude'] <= 5000 and not manoeuvres['landing_sequence'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
-            manoeuvres['landing_sequence'] = True
-            print("Landing sequence started")
+        # Attempt to initialise landing sequence when altitude is lower than 7000m, first find the best angle
+        if current_state['altitude'] <= 7000 and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
+            manoeuvres['pre-landing'] = True
+            print("Landing preparation started")
             manoeuvres['spiral'] = False
 
         cla_fin = float(clalpha_fin(0))
@@ -229,7 +233,7 @@ def run_sim(states):
             print("Backtrack turn completed")
 
         # If at x=0 and not in turn or landing sequence, perform spiral descent, remove constrain on turn angle
-        if current_state['x'] <= 0 and not manoeuvres['spiral'] and not manoeuvres['landing_sequence']: 
+        if current_state['x'] <= 0 and not manoeuvres['spiral'] and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing']: 
             manoeuvres['spiral'] = True
             print("Spiral started")
 
@@ -243,11 +247,75 @@ def run_sim(states):
         if manoeuvres['turn'] or manoeuvres['spiral']:
             bank_angle = - max_bank_angle
         # After exiting the spiral, turn left or right to correct the direction
-        elif manoeuvres['landing_sequence']:
-            if (turn_angle - target_angle) % np.deg2rad(360) < pi:  # Turn right
+        if manoeuvres['spiral']:
+            x_end_spiral = np.abs(np.array([current_state['x']]))
+            y_end_spiral = np.abs(np.array([current_state['y']]))
+
+
+        if manoeuvres['pre-landing']:
+            coord = [0, 5000]
+            # alpha = velocity_controller.update(current_state["velocity"], dt)
+            # print((np.arctan(x_target, y_target)))
+            coord_target_angle = np.arctan(x_end_spiral/ (y_end_spiral - coord[1]))
+            # print(coord_target_angle)
+            # alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+            # alpha = np.deg2rad(5)
+            k = 0.5
+            current_angle = np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1]))
+            if current_state['x'] > 0 and current_angle > coord_target_angle:  # Turn right 
+                # print('turning right')
                 bank_angle = max_bank_angle
-            else:                                                   # Turn left
+            elif current_state['x'] > 0 and current_angle < coord_target_angle:
                 bank_angle = - max_bank_angle
+            elif current_state['x'] < 0 and current_angle > coord_target_angle:   
+                # print('turning left')                                      # Turn left
+                bank_angle = - max_bank_angle
+            elif current_state['x'] < 0 and current_angle < coord_target_angle:
+                bank_angle = max_bank_angle
+            # if 0.98 * coord_target_angle < current_angle < 1.02 * coord_target_angle:
+            #     print('damp out bank angle')
+            #     bank_angle = 0.9 * bank_angle
+            # if 0.98 * coord_target_angle < np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) < 1.02 * coord_target_angle:
+            #     print('adjusted bank angle to 0')
+            #     bank_angle = bank_angle * 0.5
+            # print(current_state['x'])
+            # print(current_state['x'])
+            if np.abs(current_state['x']) < 20 and np.abs(current_state['altitude']) <= np.sqrt(current_state['x'] ** 2 + current_state['y'] ** 2) * np.tan(target_glide_angle) :  
+                manoeuvres['landing_sequence'] = True
+                manoeuvres['pre-landing'] = False
+                print('pre-landing procedure finished, initialising landing procedure')
+                print('coordinates', current_state['x'], current_state['y'])
+                x_end_preland = np.abs(current_state['x'])
+                y_end_preland = np.abs(current_state['y'])
+
+        if manoeuvres['landing_sequence']:
+            coord = [0, 0]
+            # alpha = velocity_controller.update(current_state["velocity"], dt)
+            # print((np.arctan(x_target, y_target)))
+
+            coord_target_angle = np.arctan(x_end_preland/ (y_end_preland - coord[1]))
+            # print(coord_target_angle)
+            # print(coord_target_angle)
+            # alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+            # print(current_state['velocity'])
+            # print(np.rad2deg(current_state['gamma']))
+            # print(current_state['velocity'])
+            # print('stall speed', np.sqrt(2 * mass * G / (current_state['air_density'] * S_wing * clalpha_wing(alpha))))
+            alpha = np.deg2rad(5.5)
+            if current_state['x'] > 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) >  coord_target_angle:  # Turn right
+                
+                # print('turning right')
+                bank_angle = max_bank_angle
+            elif current_state['x'] < 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) > coord_target_angle:   
+                # print('turning left')                                      # Turn left
+                bank_angle = - max_bank_angle
+            
+            # print(current_state['x'])
+            # print(current_state['x'])
+            # if np.abs(current_state['x']) < 20: 
+            #     manoeuvres['landing_sequence'] = True
+            #     manoeuvres['pre-landing'] = False
+            #     print('pre-landing procedure finished')
         
         # Universal turning calculation for any given bank angle
         delta_angle = (
@@ -301,6 +369,7 @@ def run_sim(states):
         states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
 
         if current_state["altitude"] < 0:
+            print(f"landed with angle of {np.rad2deg(current_state['gamma'])} degrees")
             manoeuvres['landed'] = True
 
     return states
@@ -310,7 +379,7 @@ run_sim(states)
 run_time = perf_counter() - start
 print(f"Runtime of simulation: {run_time:.2f} s")
 
-print(f"Flight duration: {round(states["time"][-1],1)} s")
+print(f"Flight duration: {round(states['time'][-1],1)} s")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
 

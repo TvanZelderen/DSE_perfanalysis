@@ -39,11 +39,11 @@ class landingcontroller:
         # Controller state
         self.integral_error = 0
         self.previous_error = 0
-        # self.previous_angle_of_attack = 0
+        self.previous_angle_of_attack = 0
         self.max_integral_windup = max_integral_windup
 
-    def update(self, current_angle, dt, previous_angle_of_attack):
-        self.previous_angle_of_attack = previous_angle_of_attack
+    def update(self, current_angle, dt): 
+
         """
         Calculate the required angle of attack to approach target velocity
 
