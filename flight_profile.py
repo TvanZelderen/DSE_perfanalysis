@@ -87,13 +87,13 @@ frontal_area = radius**2 * pi
 
 wingspan = 1
 wingchord = 0.12
-wing_sweep_angle = np.deg2rad(45) # deg
+wing_sweep_angle = np.deg2rad(60) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
 Ar_wing = effective_wingspan**2 / S_wing
 
 e = 0.6
-airfoil_wing = "ah6407"
+airfoil_wing = "kc135"
 airfoil_fin = "naca0012"
 
 
@@ -129,6 +129,7 @@ states = {
     'y': [],
     'air_density': [],
     'cl': [],
+    'q':[]
 }
 
 manoeuvres = {
@@ -153,7 +154,7 @@ landing_controller = landingcontroller(
 )
 
 target_glide_angle = np.deg2rad(15)
-max_bank_angle = np.deg2rad(30)
+max_bank_angle = np.deg2rad(36)
 landing_angle = np.deg2rad(15)
 
 def initialize_states():
@@ -178,6 +179,7 @@ def initialize_states():
     states['y'].append(0)
     states['air_density'].append(0)
     states['cl'].append(0)
+    states['q'].append(0)
 
 print("Starting sim...")
 initialize_states()
@@ -253,7 +255,7 @@ def run_sim(states):
 
 
         if manoeuvres['pre-landing']:
-            coord = [0, 5000]
+            coord = [0, 4000]
             # alpha = velocity_controller.update(current_state["velocity"], dt)
             # print((np.arctan(x_target, y_target)))
             coord_target_angle = np.arctan(x_end_spiral/ (y_end_spiral - coord[1]))
@@ -301,7 +303,7 @@ def run_sim(states):
             # print(np.rad2deg(current_state['gamma']))
             # print(current_state['velocity'])
             # print('stall speed', np.sqrt(2 * mass * G / (current_state['air_density'] * S_wing * clalpha_wing(alpha))))
-            alpha = np.deg2rad(5.3)
+            alpha = np.deg2rad(7.3)
             if current_state['x'] > 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) >  coord_target_angle:  # Turn right
                 
                 # print('turning right')
@@ -364,6 +366,7 @@ def run_sim(states):
         states["load_factor"].append(load_factor)
         states["x"].append(x)
         states["y"].append(y)
+        states["q"].append(dyn_press)
 
         states["air_density"].append(density)
         states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
@@ -382,6 +385,12 @@ print(f"Runtime of simulation: {run_time:.2f} s")
 print(f"Flight duration: {round(states['time'][-1],1)} s")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
+
+# print(f"max mach is: {max(states['mach'])}")
+# print(f"max dynamic pressure: {max(states['q'])}")
+# print(f"max lift: {max(states['lift'])}")
+# print(f"max drag: {max(states['drag'])}")
+# print(f"max n: {max(states['load_factor'])}")
 
 # if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
 #     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
