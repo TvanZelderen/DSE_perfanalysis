@@ -260,7 +260,7 @@ def run_sim(states):
             # print(coord_target_angle)
             # alpha = landing_controller.update(current_state["gamma"], dt, alpha)
             # alpha = np.deg2rad(5)
-            k = 0.5
+            # k = 0.5
             current_angle = np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1]))
             if current_state['x'] > 0 and current_angle > coord_target_angle:  # Turn right 
                 # print('turning right')
@@ -301,7 +301,7 @@ def run_sim(states):
             # print(np.rad2deg(current_state['gamma']))
             # print(current_state['velocity'])
             # print('stall speed', np.sqrt(2 * mass * G / (current_state['air_density'] * S_wing * clalpha_wing(alpha))))
-            alpha = np.deg2rad(5.5)
+            alpha = np.deg2rad(5.3)
             if current_state['x'] > 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) >  coord_target_angle:  # Turn right
                 
                 # print('turning right')
