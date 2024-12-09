@@ -128,8 +128,10 @@ states = {
     'x': [],
     'y': [],
     'air_density': [],
-    'cl': [],
-    'q':[]
+    'Cl': [],
+    'q': [], 
+    'Cm': [],
+    'M': [],
 }
 
 manoeuvres = {
@@ -178,8 +180,10 @@ def initialize_states():
     states['x'].append(distance)
     states['y'].append(0)
     states['air_density'].append(0)
-    states['cl'].append(0)
+    states['Cl'].append(0)
     states['q'].append(0)
+    states['Cm'].append(0)
+    states['M'].append(0)
 
 print("Starting sim...")
 initialize_states()
@@ -367,9 +371,10 @@ def run_sim(states):
         states["x"].append(x)
         states["y"].append(y)
         states["q"].append(dyn_press)
-
+        states["Cm"].append(cmalpha_wing(np.rad2deg(alpha)))
         states["air_density"].append(density)
-        states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
+        states["Cl"].append(clalpha_wing(np.rad2deg(alpha)))
+        states["M"].append(cmalpha_wing(np.rad2deg(alpha)) * S_wing * dyn_press)
 
         if current_state["altitude"] < 0:
             print(f"landed with angle of {np.rad2deg(current_state['gamma'])} degrees")
@@ -381,7 +386,6 @@ run_sim(states)
 
 run_time = perf_counter() - start
 print(f"Runtime of simulation: {run_time:.2f} s")
-
 print(f"Flight duration: {round(states['time'][-1],1)} s")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
@@ -391,6 +395,7 @@ print(f"max dynamic pressure: {max(states['q'])}")
 print(f"max lift: {max(states['lift'])}")
 print(f"max drag: {max(states['drag'])}")
 print(f"max n: {max(states['load_factor'])}")
+print(f"max M: {min(states['M'])}")
 
 # if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
 #     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
