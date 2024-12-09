@@ -153,8 +153,8 @@ landing_controller = landingcontroller(
     max_angle_of_attack=np.deg2rad(14.0),
 )
 
-target_glide_angle = np.deg2rad(15)
-max_bank_angle = np.deg2rad(36)
+target_glide_angle = np.deg2rad(10)
+max_bank_angle = np.deg2rad(43)
 landing_angle = np.deg2rad(15)
 
 def initialize_states():
@@ -209,7 +209,7 @@ def run_sim(states):
         target_angle = np.arctan2(np.abs(current_state['y']), np.abs(current_state['x'])) # Target angle from LAUNCH Ring to landing site
 
         # Attempt to initialise landing sequence when altitude is lower than 7000m, first find the best angle
-        if current_state['altitude'] <= 7000 and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
+        if current_state['altitude'] <= 5000 and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
             manoeuvres['pre-landing'] = True
             print("Landing preparation started")
             manoeuvres['spiral'] = False
@@ -255,12 +255,12 @@ def run_sim(states):
 
 
         if manoeuvres['pre-landing']:
-            coord = [0, 4000]
+            coord = [0, 300]
             # alpha = velocity_controller.update(current_state["velocity"], dt)
             # print((np.arctan(x_target, y_target)))
             coord_target_angle = np.arctan(x_end_spiral/ (y_end_spiral - coord[1]))
             # print(coord_target_angle)
-            # alpha = landing_controller.update(current_state["gamma"], dt, alpha)
+            alpha = velocity_controller.update(current_state["gamma"], dt)
             # alpha = np.deg2rad(5)
             # k = 0.5
             current_angle = np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1]))
@@ -291,7 +291,7 @@ def run_sim(states):
                 y_end_preland = np.abs(current_state['y'])
 
         if manoeuvres['landing_sequence']:
-            coord = [0, 0]
+            coord = [0, -12000]
             # alpha = velocity_controller.update(current_state["velocity"], dt)
             # print((np.arctan(x_target, y_target)))
 
@@ -303,14 +303,14 @@ def run_sim(states):
             # print(np.rad2deg(current_state['gamma']))
             # print(current_state['velocity'])
             # print('stall speed', np.sqrt(2 * mass * G / (current_state['air_density'] * S_wing * clalpha_wing(alpha))))
-            alpha = np.deg2rad(7.3)
+            alpha = np.deg2rad(8)
             if current_state['x'] > 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) >  coord_target_angle:  # Turn right
                 
                 # print('turning right')
-                bank_angle = max_bank_angle
+                bank_angle = max_bank_angle /1
             elif current_state['x'] < 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) > coord_target_angle:   
                 # print('turning left')                                      # Turn left
-                bank_angle = - max_bank_angle
+                bank_angle = - max_bank_angle /1
             
             # print(current_state['x'])
             # print(current_state['x'])
@@ -386,11 +386,11 @@ print(f"Flight duration: {round(states['time'][-1],1)} s")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
 
-# print(f"max mach is: {max(states['mach'])}")
-# print(f"max dynamic pressure: {max(states['q'])}")
-# print(f"max lift: {max(states['lift'])}")
-# print(f"max drag: {max(states['drag'])}")
-# print(f"max n: {max(states['load_factor'])}")
+print(f"max mach is: {max(states['mach'])}")
+print(f"max dynamic pressure: {max(states['q'])}")
+print(f"max lift: {max(states['lift'])}")
+print(f"max drag: {max(states['drag'])}")
+print(f"max n: {max(states['load_factor'])}")
 
 # if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
 #     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
