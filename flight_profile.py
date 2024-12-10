@@ -85,8 +85,8 @@ G = 9.81
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
-wingspan = 1
-wingchord = 0.12
+wingspan = 0.95
+wingchord = 0.14
 wing_sweep_angle = np.deg2rad(60) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
@@ -156,8 +156,8 @@ landing_controller = landingcontroller(
 )
 
 target_glide_angle = np.deg2rad(10)
-max_bank_angle = np.deg2rad(43)
-landing_angle = np.deg2rad(15)
+max_bank_angle = np.deg2rad(45)
+landing_angle = np.deg2rad(33)
 
 def initialize_states():
     # Set initial conditions
@@ -213,9 +213,12 @@ def run_sim(states):
         target_angle = np.arctan2(np.abs(current_state['y']), np.abs(current_state['x'])) # Target angle from LAUNCH Ring to landing site
 
         # Attempt to initialise landing sequence when altitude is lower than 7000m, first find the best angle
-        if current_state['altitude'] <= 5000 and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing'] and current_state["turn_angle"] % (2 * np.pi) - target_angle >= np.pi:
+        if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not manoeuvres['landing_sequence'] and not manoeuvres['pre-landing']:
+            # print("Landing sequence started")
             manoeuvres['pre-landing'] = True
             print("Landing preparation started")
+            x_end_spiral = np.abs(np.array([current_state['x']]))
+            y_end_spiral = np.abs(np.array([current_state['y']]))
             manoeuvres['spiral'] = False
 
         cla_fin = float(clalpha_fin(0))
@@ -253,31 +256,33 @@ def run_sim(states):
         if manoeuvres['turn'] or manoeuvres['spiral']:
             bank_angle = - max_bank_angle
         # After exiting the spiral, turn left or right to correct the direction
-        if manoeuvres['spiral']:
-            x_end_spiral = np.abs(np.array([current_state['x']]))
-            y_end_spiral = np.abs(np.array([current_state['y']]))
+        # if manoeuvres['spiral']:
+            
 
 
         if manoeuvres['pre-landing']:
-            coord = [0, 300]
+            coord = [0, 100]
             # alpha = velocity_controller.update(current_state["velocity"], dt)
             # print((np.arctan(x_target, y_target)))
-            coord_target_angle = np.arctan(x_end_spiral/ (y_end_spiral - coord[1]))
+            target_angle = np.arctan2(-current_state['y'], -current_state['x'])
+            # coord_target_angle = np.arctan(x_end_spiral/ (y_end_spiral - coord[1]))
             # print(coord_target_angle)
             alpha = velocity_controller.update(current_state["gamma"], dt)
             # alpha = np.deg2rad(5)
             # k = 0.5
             current_angle = np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1]))
-            if current_state['x'] > 0 and current_angle > coord_target_angle:  # Turn right 
-                # print('turning right')
+
+            # if (turn_angle - target_angle) % np.deg2rad(360) > 3* pi/2: # Turn right
+            #     bank_angle =  max_bank_angle
+            # else: # Turn left
+            #     bank_angle = - max_bank_angle
+
+            if (turn_angle - target_angle) % np.deg2rad(360) < pi: # Turn right
                 bank_angle = max_bank_angle
-            elif current_state['x'] > 0 and current_angle < coord_target_angle:
+            else: # Turn left
                 bank_angle = - max_bank_angle
-            elif current_state['x'] < 0 and current_angle > coord_target_angle:   
-                # print('turning left')                                      # Turn left
-                bank_angle = - max_bank_angle
-            elif current_state['x'] < 0 and current_angle < coord_target_angle:
-                bank_angle = max_bank_angle
+
+
             # if 0.98 * coord_target_angle < current_angle < 1.02 * coord_target_angle:
             #     print('damp out bank angle')
             #     bank_angle = 0.9 * bank_angle
@@ -286,7 +291,7 @@ def run_sim(states):
             #     bank_angle = bank_angle * 0.5
             # print(current_state['x'])
             # print(current_state['x'])
-            if np.abs(current_state['x']) < 20 and np.abs(current_state['altitude']) <= np.sqrt(current_state['x'] ** 2 + current_state['y'] ** 2) * np.tan(target_glide_angle) :  
+            if current_state['x'] < 20 and np.abs(current_state['altitude']) <= 56.7 :  
                 manoeuvres['landing_sequence'] = True
                 manoeuvres['pre-landing'] = False
                 print('pre-landing procedure finished, initialising landing procedure')
@@ -295,10 +300,10 @@ def run_sim(states):
                 y_end_preland = np.abs(current_state['y'])
 
         if manoeuvres['landing_sequence']:
-            coord = [0, -12000]
+            coord = [0, -0]
             # alpha = velocity_controller.update(current_state["velocity"], dt)
             # print((np.arctan(x_target, y_target)))
-
+            target_angle = np.arctan2(-current_state['y'], -current_state['x'])
             coord_target_angle = np.arctan(x_end_preland/ (y_end_preland - coord[1]))
             # print(coord_target_angle)
             # print(coord_target_angle)
@@ -307,15 +312,18 @@ def run_sim(states):
             # print(np.rad2deg(current_state['gamma']))
             # print(current_state['velocity'])
             # print('stall speed', np.sqrt(2 * mass * G / (current_state['air_density'] * S_wing * clalpha_wing(alpha))))
-            alpha = np.deg2rad(8)
+
+
+            alpha = np.deg2rad(14.5)
             if current_state['x'] > 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) >  coord_target_angle:  # Turn right
                 
                 # print('turning right')
-                bank_angle = max_bank_angle /1
+                bank_angle = 0
             elif current_state['x'] < 0 and np.arctan(np.abs(current_state['x'])/ np.abs(current_state['y'] - coord[1])) > coord_target_angle:   
                 # print('turning left')                                      # Turn left
-                bank_angle = - max_bank_angle /1
+                bank_angle = 0
             
+
             # print(current_state['x'])
             # print(current_state['x'])
             # if np.abs(current_state['x']) < 20: 
