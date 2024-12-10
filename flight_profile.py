@@ -157,7 +157,7 @@ landing_controller = landingcontroller(
 
 target_glide_angle = np.deg2rad(10)
 max_bank_angle = np.deg2rad(45)
-landing_angle = np.deg2rad(33)
+landing_angle = np.deg2rad(38)
 
 def initialize_states():
     # Set initial conditions
