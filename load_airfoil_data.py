@@ -3,9 +3,10 @@ import os
 from matplotlib import pyplot as plt
 import csv
 
-read_directory = "E:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoil_result"
+##### This code is made with the help of ChatGPT ####
+read_directory = "D:/Downloads/xflr5_6.57_win64/xflr5_6.57_win64/airfoil_result"
 
-output_directory = 'E:/Github/DSE_perfanalysis/airfoil_database'
+output_directory = 'C:/Users/25445/Documents/GitHub/DSE_perfanalysis/airfoil_database'
 
 for filename in os.listdir(read_directory):
     input_file_path = os.path.join(read_directory, filename)
