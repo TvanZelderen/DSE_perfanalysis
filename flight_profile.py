@@ -13,7 +13,6 @@ def flight_derivatives(state, params):
     Parameters:
     state: [V, gamma] - current velocity and flight path angle
     params: Dictionary containing aircraft and environmental parameters
-        - T: Thrust
         - alpha_T: Thrust angle
     """
     V, gamma = state
@@ -27,7 +26,6 @@ def flight_derivatives(state, params):
     # Calculate derivatives using the given equations
     V_dot = (-D - W * np.sin(gamma)) / (W / g)
     gamma_dot = (L + -W * np.cos(gamma)) / (W / g * V)
-
     return np.array([V_dot, gamma_dot])
 
 # Take a step using RK4
@@ -66,16 +64,16 @@ G = 9.81
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
-wingspan = 1
+wingspan = 0
 wingchord = 0.12
-wing_sweep_angle = np.deg2rad(45) # deg
+wing_sweep_angle = np.deg2rad(0) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
-Ar_wing = effective_wingspan**2 / S_wing
+Ar_wing = np.nan_to_num(effective_wingspan**2 / S_wing)
 
 e = 0.6
-airfoil_wing = "ah6407"
-airfoil_fin = "naca0012"
+airfoil_wing = "kc135"
+airfoil_fin = "naca0009"
 
 clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
     airfoil_name=airfoil_wing
@@ -84,11 +82,14 @@ clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
     airfoil_name=airfoil_fin
 )
 
-finspan = 0.1
+finspan = 0
 fin_cr = 0.1
 fin_ct = 0.1
 S_fin = finspan * (fin_cr + fin_ct) / 2
-Ar_fin = finspan**2 / S_fin
+if S_fin == 0:
+    Ar_fin = 0
+else:
+    Ar_fin = finspan**2 / S_fin
 
 states = {
     'time': [],
@@ -168,11 +169,14 @@ while not landed:
         print("Landing sequence started")
 
     cla_fin = float(clalpha_fin(0))
-    induced_drag_fins = (
-        dyn_press * (cd0_fin + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
-    )
+    if S_fin == 0:
+        induced_drag_fins = 0
+    else:
+        induced_drag_fins = (
+            dyn_press * (cd0_fin + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
+        )
     cla_wing = float(clalpha_wing(alpha))
-    induced_drag_wing = (
+    induced_drag_wing = np.nan_to_num(
         dyn_press * (cd0_wing + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
     )
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
@@ -201,7 +205,7 @@ while not landed:
             bank_angle = - max_bank_angle
     
     delta_angle = (
-        current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
+        dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.sin(bank_angle) * current_state['gravity'] / current_state['weight'] / current_state['velocity']
     )
     turn_angle = current_state["turn_angle"] - delta_angle * dt
     states["turn_angle"].append(turn_angle)
@@ -215,8 +219,8 @@ while not landed:
 
     load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
 
-    dx = current_state['velocity'] * np.cos(current_state['turn_angle']) * dt
-    dy = current_state['velocity'] * np.sin(current_state['turn_angle']) * dt
+    dx = current_state['velocity'] * np.cos(current_state['gamma']) * np.cos(current_state['turn_angle']) * dt
+    dy = current_state['velocity'] * np.cos(current_state['gamma']) * np.sin(current_state['turn_angle']) * dt
     x = current_state['x'] + dx
     y = current_state['y'] + dy
 
