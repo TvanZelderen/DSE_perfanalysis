@@ -113,6 +113,8 @@ states = {
     'y': [],
     'air_density': [],
     'cl': [],
+    'wing_moment': [],
+    'dyn_press': [],
 }
 
 velocity_controller = ImprovedVelocityController(
@@ -153,6 +155,8 @@ def initialize_states():
     states['y'].append(0)
     states['air_density'].append(0)
     states['cl'].append(0)
+    states['wing_moment'].append(0)
+    states['dyn_press'].append(0)
 
 print("Starting sim...")
 initialize_states()
@@ -187,6 +191,9 @@ while not landed:
         )
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     drag = induced_drag_fins + induced_drag_wing + drag_body
+
+    cma = float(cmalpha_wing(alpha))
+    wing_moment = cma * dyn_press * S_wing * wingchord
 
     ########### Turn Implementation ##########
     if current_state["turn_angle"] >= np.pi and turn: # Initial turn to 0 x distance
@@ -232,6 +239,7 @@ while not landed:
 
     states["lift"].append(lift)
     states["drag"].append(drag)
+    states['wing_moment'].append(wing_moment)
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -258,14 +266,26 @@ while not landed:
     states["y"].append(y)
 
     states["air_density"].append(density)
+    states["dyn_press"].append(dyn_press)
     states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
 
     if current_state["altitude"] < 0:
         landed = True
 
+print("\n##################################")
+
 print(f"Flight duration: {round(states["time"][-1],1)}")
-print(f"Vertical speed at touchdown: {current_state['vertical_speed']}")
-print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}")
+print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
+print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
+
+print(f"Maximum lift: {max(states['lift']):.2f}")
+print(f"Maximum drag: {max(states['drag']):.2f}")
+print(f"Maximum wing moment: {min(states['wing_moment']):.2f}\n")
+
+print(f"Maximum Mach number: {max(states['mach']):.2f}")
+print(f"Maximum dynamic pressure: {max(states['dyn_press']):.2f}")
+
+print(f"Wing loading: {mass / S_wing}")
 
 plot_flight_states(states)
 
