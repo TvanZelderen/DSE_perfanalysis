@@ -60,7 +60,7 @@ altitude = 27000
 distance = 16000
 velocity = 200
 
-mass = 20
+mass = 20 + 13
 G = 9.81
 
 radius = 0.29 / 2
