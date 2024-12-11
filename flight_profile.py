@@ -64,7 +64,7 @@ G = 9.81
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
-wingspan = 0
+wingspan = 1
 wingchord = 0.12
 wing_sweep_angle = np.deg2rad(0) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
@@ -85,7 +85,7 @@ clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
     airfoil_name=airfoil_fin
 )
 
-finspan = 0
+finspan = 0.1
 fin_cr = 0.1
 fin_ct = 0.1
 S_fin = finspan * (fin_cr + fin_ct) / 2
