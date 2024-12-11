@@ -69,7 +69,10 @@ wingchord = 0.12
 wing_sweep_angle = np.deg2rad(0) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
-Ar_wing = np.nan_to_num(effective_wingspan**2 / S_wing)
+if S_wing == 0:
+    Ar_wing = 0
+else:
+    Ar_wing = (effective_wingspan**2 / S_wing)
 
 e = 0.6
 airfoil_wing = "kc135"
@@ -176,9 +179,12 @@ while not landed:
             dyn_press * (cd0_fin + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
         )
     cla_wing = float(clalpha_wing(alpha))
-    induced_drag_wing = np.nan_to_num(
-        dyn_press * (cd0_wing + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
-    )
+    if S_wing == 0:
+        induced_drag_wing = 0
+    else:
+        induced_drag_wing = (
+            dyn_press * (cd0_wing + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
+        )
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     drag = induced_drag_fins + induced_drag_wing + drag_body
 
