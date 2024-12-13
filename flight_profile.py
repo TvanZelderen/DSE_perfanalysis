@@ -85,8 +85,8 @@ G = 9.81
 radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
-wingspan = 0.95
-wingchord = 0.14
+wingspan = 1
+wingchord = 0.12
 wing_sweep_angle = np.deg2rad(60) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
@@ -157,7 +157,7 @@ landing_controller = landingcontroller(
 
 target_glide_angle = np.deg2rad(10)
 max_bank_angle = np.deg2rad(45)
-landing_angle = np.deg2rad(38)
+landing_angle = np.deg2rad(28)
 
 def initialize_states():
     # Set initial conditions
@@ -200,7 +200,7 @@ def run_sim(states):
         pressure, density, temperature = get_isa(current_state["altitude"])
         dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
         mach = mach_number(current_state["velocity"], current_state["altitude"])
-
+        # print(mach)
         #############################################################################################
         # If landing sequence is not initialised, use velocity controller to control velocity
         if not (manoeuvres['landing_sequence'] and manoeuvres['pre-landing']): 
@@ -333,7 +333,7 @@ def run_sim(states):
         
         # Universal turning calculation for any given bank angle
         delta_angle = (
-            current_state["gravity"] * np.tan(bank_angle) / current_state["velocity"]
+            current_state["gravity"] * np.cos(current_state['gamma']) * np.tan(bank_angle) / current_state["velocity"]
         )
         turn_angle = current_state["turn_angle"] - delta_angle * dt
         states["turn_angle"].append(turn_angle)
@@ -382,7 +382,7 @@ def run_sim(states):
         states["Cm"].append(cmalpha_wing(np.rad2deg(alpha)))
         states["air_density"].append(density)
         states["Cl"].append(clalpha_wing(np.rad2deg(alpha)))
-        states["M"].append(cmalpha_wing(np.rad2deg(alpha)) * S_wing * dyn_press)
+        states["M"].append(cmalpha_wing(np.rad2deg(alpha)) * S_wing * dyn_press * wingchord)
 
         if current_state["altitude"] < 0:
             print(f"landed with angle of {np.rad2deg(current_state['gamma'])} degrees")
@@ -396,6 +396,7 @@ run_time = perf_counter() - start
 print(f"Runtime of simulation: {run_time:.2f} s")
 print(f"Flight duration: {round(states['time'][-1],1)} s")
 print(f"Vertical speed at touchdown: {states['vertical_speed'][-1]:.2f} m/s")
+print(f"velocity at touchdown: {states['velocity'][-1]}")
 print(f"Position at touchdown: {round(states['x'][-1]), round(states['y'][-1])}")
 
 print(f"max mach is: {max(states['mach'])}")

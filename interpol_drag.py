@@ -4,6 +4,8 @@ from matplotlib import pyplot as plt
 def launch_vehicle_drag_coef(mach):
     if mach < 0:
         raise ValueError("The mach number has to be above 0.")
+    if mach == 0:
+        return 0
     if mach <= 0.6:
         return 0.2083333 * mach ** 2 - 0.25 * mach + 0.46
     if mach <= 0.8:
