@@ -1,10 +1,10 @@
-from simulation.interpol_drag import launch_vehicle_drag_coef
+from interpol_drag import launch_vehicle_drag_coef
 import numpy as np
-from simulation.utils import get_isa, dynamic_pressure, mach_number
+from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
-from simulation.plot import plot_flight_states
-from simulation.velocity_controller import ImprovedVelocityController
-from simulation.airfoil import f_airfoil
+from plot import plot_flight_states
+from velocity_controller import ImprovedVelocityController
+from airfoil import f_airfoil
 
 def flight_derivatives(state, params):
     """
