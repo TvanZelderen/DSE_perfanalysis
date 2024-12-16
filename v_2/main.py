@@ -1,9 +1,9 @@
 from return_module import ReturnModule
-from physics_alpha import simulate_step
+from v_2.physics_alpha import simulate_step
 from math import sqrt, degrees
 import matplotlib.pyplot as plt
 
-from physics_alpha import calculate_velocity_pitch, calculate_velocity_yaw
+from v_2.physics_alpha import calculate_velocity_pitch, calculate_velocity_yaw
 
 # Initialize vehicles
 landers = [

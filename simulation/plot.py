@@ -68,9 +68,9 @@ def plot_flight_states(states):
     axs["mr"].grid(True)
 
     # Turn plot
-    bank = [np.rad2deg(x) for x in states['turn_angle']]
-    axs["bbl"].plot(states['time'], bank)
-    axs["bbl"].set_title('Turn vs Time')
+    turn = [np.rad2deg(x) for x in states['beta']]
+    axs["bbl"].plot(states['time'], turn)
+    axs["bbl"].set_title('Beta vs Time')
     axs["bbl"].set_xlabel('Time (s)')
     axs["bbl"].set_ylabel('Phi (deg)')
     axs["bbl"].grid(True)
@@ -83,18 +83,22 @@ def plot_flight_states(states):
     axs["bbm"].grid(True)
 
     # Drag plot
-    # axs["bbr"].plot(states['time'], states['drag'])
-    # axs["bbr"].set_title('Drag vs Time')
-    # axs["bbr"].set_xlabel('Time (s)')
-    # axs["bbr"].set_ylabel('Drag (N)')
-    # axs["bbr"].grid(True)
+    axs["bbr"].plot(states['time'], states['drag'])
+    axs["bbr"].plot(states['time'], states['drag_fins'])
+    axs["bbr"].plot(states['time'], states['drag_wings'])
+    axs["bbr"].plot(states['time'], states['drag_wave'])
+    axs["bbr"].set_title('Drag vs Time')
+    axs["bbr"].set_xlabel('Time (s)')
+    axs["bbr"].set_ylabel('Drag (N)')
+    axs["bbr"].grid(True)
+    axs["bbr"].legend(["drag", "fins", "wing", "wave"])
 
     # Load factor plot
-    axs["bbr"].plot(states['time'], states['load_factor'])
-    axs["bbr"].set_title('Load Factor vs Time')
-    axs["bbr"].set_xlabel('Time (s)')
-    axs["bbr"].set_ylabel('Load Factor (-)')
-    axs["bbr"].grid(True)
+    # axs["bbr"].plot(states['time'], states['load_factor'])
+    # axs["bbr"].set_title('Load Factor vs Time')
+    # axs["bbr"].set_xlabel('Time (s)')
+    # axs["bbr"].set_ylabel('Load Factor (-)')
+    # axs["bbr"].grid(True)
     
     # Adjust layout and display
     plt.tight_layout()

@@ -1,7 +1,7 @@
 import math
 import cmath
-import variables as var
-from utils import get_air_density
+import v_1.variables as var
+from simulation.utils import get_air_density
 
 
 def calculate_lift_coefficient(angle_of_attack):

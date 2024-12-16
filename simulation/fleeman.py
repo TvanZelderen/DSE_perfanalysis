@@ -1,4 +1,4 @@
-from utils import dynamic_pressure, mach_number
+from simulation.utils import dynamic_pressure, mach_number
 from math import pi, cos, sin, atan, atan2
 
 # Rocket variables

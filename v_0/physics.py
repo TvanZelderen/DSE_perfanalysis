@@ -1,4 +1,4 @@
-import variables as var
+import v_1.variables as var
 import cmath
 from math import degrees
 
