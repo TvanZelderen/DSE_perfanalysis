@@ -1,10 +1,9 @@
-from idlelib.parenmatch import CHECK_DELAY
-from idlelib.pyparse import C_STRING_FIRST_LINE
 
+import numpy as np
 import scipy as sp
 from sympy import *
 
-# we need C_L, C_D, C_M, alpha, V, gamma, S, S_h, c, l_h, C_Lh, C_Dh, alpha_h, epsilon
+# we need C_L, C_D, C_M, alpha, V, gamma, S, b, S_h, c, l_h, C_Lh, C_Dh, alpha_h, epsilon, I_Y, m
 
 C_X = C_L * sin(alpha) - C_D * cos(alpha)
 C_Z = - C_L * cos(alpha) - C_D* sin(alpha)
@@ -41,7 +40,7 @@ C_Mqh = -diff(C_Nh, alpha)*(V_h/V)**2*S_h*l_h**2/(S*c**2)
 C_Zqh = -diff(C_Nh, alpha)*(V_h/V)**2*S_h*l_h/(S*c)
 C_Zq = 2* (C_Zqh)
 C_Mq = 1.1 * C_Zqh*l_h/c
-
+8
 C_Xdiffalpha = 0 #Usually, changes in the airspeed, occur so slowly that this delayed adjustment is not noticeabl
 C_Zdiffalpha = -diff(C_Nh, alpha)*(V_h/V)**2*diff(epsilon, alpha)* *S_h*l_h/(S*c)
 C_Mdiffalpha = -diff(C_Nh, alpha)*(V_h/V)**2*diff(epsilon, alpha)* *S_h*l_h**2/(S*c**2)
@@ -53,4 +52,15 @@ C_Mdeltae = -C_Nhdelta*(V_h/V)**2*S_h*l_h/(S*c)
 -------
 
 K_Y = sqrt(I_Y/m)
+mu_c = m/(rho*S*b)
+
+----
+
+A = 4*mu_c**2*K_Y**2*(C_Zdiffalpha-2*mu_c)
+B = C_Mdiffalpha*2*mu_c*(C_Zq+2*mu_c)-C_Mq*2*mu_c*(C_Zdiffalpha-2*mu_c)-2*mu_c*K_Y**2*(C_Xu*(C_Zdiffalpha-2*mu_c)-2*mu_c*C_Zalpha)
+C = C_Malpha*2*mu_c*(C_Zq+2*mu_c)-C_Mdiffalpha*(2*mu_c*C_X0+C_Xu*(C_Zq+2*mu_c))+C_Mq*(C_Xu*(C_Zdiffalpha-2*mu_c)-2*mu_c*C_Zalpha)+2*mu_c*K_Y**2*(C_Xalpha*C_Zu-C_Zalpha*C_Xu)
+D = C_Mu*(C_Xalpha*(C_Zq+2*mu_c)-C_Z0*(C_Zdiffalpha-2*mu_c))-C_Malpha*(2*mu_c*C_X0+C_Xu*(C_Zq+2*mu_c))+C_Mdiffalpha*(C_X0*C_Xu-C_Z0*C_Zu)+C_Mq*(C_Xu*C_Zalpha-C_Zu*C_Xalpha)
+E = -C_Mu*(C_X0*C_Xalpha+C_Z0*C_Zalpha)+C_Malpha*(C_X0*C_Xu+C_Z0*C_Zu)
+
+eigenvalues = np.polynomial(A, B, C, D, E)
 
