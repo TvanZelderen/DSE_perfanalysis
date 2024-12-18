@@ -12,6 +12,7 @@ C_Z = - C_L * cos(alpha) - C_D* sin(alpha)
 
 C_Nh = C_Lh*cos(alpha)-C_Dh*sin(alpha) #normal force on horizontal tail
 V_h = V #biig assumtions
+C_Nhdelta = 0.04 #based on experimental data
 
 #C_X0 = - C_D #initial, steady flight condition (the equilibrium situation)
 #C_Z0 = - C_L #initial, steady flight condition (the equilibrium situation)
@@ -46,6 +47,10 @@ C_Zdiffalpha = -diff(C_Nh, alpha)*(V_h/V)**2*diff(epsilon, alpha)* *S_h*l_h/(S*c
 C_Mdiffalpha = -diff(C_Nh, alpha)*(V_h/V)**2*diff(epsilon, alpha)* *S_h*l_h**2/(S*c**2)
 
 C_Xdeltae = 0 #commonly neglected
-C_Zdeltae = #we need C_Nhdeltae
-C_Mdeltae = #we need C_Nhdeltae
+C_Zdeltae = -C_Nhdelta*(V_h/V)**2*S_h/S
+C_Mdeltae = -C_Nhdelta*(V_h/V)**2*S_h*l_h/(S*c)
+
+-------
+
+K_Y = sqrt(I_Y/m)
 
