@@ -62,5 +62,6 @@ C = C_Malpha*2*mu_c*(C_Zq+2*mu_c)-C_Mdiffalpha*(2*mu_c*C_X0+C_Xu*(C_Zq+2*mu_c))+
 D = C_Mu*(C_Xalpha*(C_Zq+2*mu_c)-C_Z0*(C_Zdiffalpha-2*mu_c))-C_Malpha*(2*mu_c*C_X0+C_Xu*(C_Zq+2*mu_c))+C_Mdiffalpha*(C_X0*C_Xu-C_Z0*C_Zu)+C_Mq*(C_Xu*C_Zalpha-C_Zu*C_Xalpha)
 E = -C_Mu*(C_X0*C_Xalpha+C_Z0*C_Zalpha)+C_Malpha*(C_X0*C_Xu+C_Z0*C_Zu)
 
+
 eigenvalues = np.polynomial(A, B, C, D, E)
 
