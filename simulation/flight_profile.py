@@ -6,6 +6,7 @@ from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
 from presets import *
+from forces import get_forces
 
 def flight_derivatives(state, params):
     """
@@ -80,30 +81,6 @@ def update_sweep(sweep: int):
     else:
         Ar_wing = (effective_wingspan**2 / S_wing)
 
-e = 0.6
-airfoil_wing = "kc135"
-airfoil_fin = "naca0009"
-
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
-    airfoil_name=airfoil_wing
-)
-clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
-    airfoil_name=airfoil_fin
-)
-
-# alpha_clcdmax = {}
-# for alpha in range(-100, 150):
-#     try:
-#         cl = clalpha_wing(alpha/10)
-#         cd_0 = cd0_wing
-#         cd = cd_0 + cl**2/(np.pi * e * wingspan**2 / S_wing)
-#         print(alpha/10, cl, cd, cd_0)
-#         alpha_clcdmax[alpha/10] = cl/cd
-#     except ValueError:
-#         pass
-
-# # print(alpha_clcdmax)
-
 finspan = 0.1
 fin_cr = 0.1
 fin_ct = 0.1
@@ -135,15 +112,14 @@ states = {
     'x': [],
     'y': [],
     'air_density': [],
-    'cl': [],
-    'wing_moment': [],
+    'moment': [],
     'dyn_press': [],
 }
 
 velocity_controller = ImprovedVelocityController(
-    target_velocity=80,
+    target_velocity=100,
     min_angle_of_attack=np.deg2rad(-7.5),
-    max_angle_of_attack=np.deg2rad(14.0),
+    max_angle_of_attack=np.deg2rad(10),
 )
 
 landed = False
@@ -180,8 +156,7 @@ def initialize_states():
     states['x'].append(distance)
     states['y'].append(0)
     states['air_density'].append(0)
-    states['cl'].append(0)
-    states['wing_moment'].append(0)
+    states['moment'].append(0)
     states['dyn_press'].append(0)
 
 print("Starting sim...")
@@ -197,29 +172,9 @@ while not landed:
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
+    alpha_deg = np.rad2deg(alpha)
 
-    cla_fin = float(clalpha_fin(0))
-    if S_fin == 0:
-        induced_drag_fins = 0
-    else:
-        induced_drag_fins = (
-            dyn_press * (cd0_fin + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
-        )
-    cla_wing = float(clalpha_wing(alpha))
-    if S_wing == 0:
-        induced_drag_wing = 0
-    else:
-        induced_drag_wing = (
-            dyn_press * (cd0_wing + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
-        )
-    drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
-    drag = induced_drag_fins + induced_drag_wing + drag_body
-    states['drag_fins'].append(induced_drag_fins)
-    states['drag_wings'].append(induced_drag_wing)
-    states['drag_wave'].append(drag_body)
-
-    cma = float(cmalpha_wing(alpha))
-    wing_moment = cma * dyn_press * S_wing * wingchord
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, delta=0)
 
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
@@ -234,7 +189,7 @@ while not landed:
         print("Landing sequence started")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-        alpha = np.deg2rad(5)
+        alpha = np.deg2rad(8)
         spiral = False
 
     horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
@@ -253,9 +208,8 @@ while not landed:
     distance = distance = (
         current_state["distance"] + horizontal_new * dt
     )  # V * cos(gamma)
-    lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(current_state['theta'])
-
-    load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
+    
+    load_factor = lift / current_state['weight']
 
     dx = current_state['velocity'] * np.cos(current_state['gamma']) * np.cos(current_state['beta']) * dt
     dy = current_state['velocity'] * np.cos(current_state['gamma']) * np.sin(current_state['beta']) * dt
@@ -264,7 +218,7 @@ while not landed:
 
     states["lift"].append(lift)
     states["drag"].append(drag)
-    states['wing_moment'].append(wing_moment)
+    states['moment'].append(moment)
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -293,7 +247,6 @@ while not landed:
 
     states["air_density"].append(density)
     states["dyn_press"].append(dyn_press)
-    states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
 
     if current_state["altitude"] < 0:
         landed = True
