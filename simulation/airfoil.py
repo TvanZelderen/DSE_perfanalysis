@@ -99,15 +99,4 @@ def f_airfoil(airfoil_name):
 if __name__ == '__main__':
     airfoil_wing = 'kc135'
     clinterp, cdinterp, cminterp = f_airfoil(airfoil_name = airfoil_wing)
-    # print(np.shape(clinterp), np.shape(cminterp), np.shape(cdinterp))
     print(clinterp[40](30000))
-    # for aoa in range(-10,11):
-    #     print(clalpha_wing(aoa))
-
-
-# print(data_wing[])
-# def wing_airfoil(wing, alpha):
-#     C_L = airfoil[0] * alpha + airfoil[1]
-#     return C_L
-
-# def fin_airfoil(fin, alpha):
