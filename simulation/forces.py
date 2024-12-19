@@ -51,7 +51,7 @@ def body(altitude, velocity, alpha, S=(0.29 / 2) ** 2 * np.pi):
     drag = 0.5 * density * velocity**2 * body_drag_coef * S
     lift = 0.5 * density * velocity**2 * body_lift_coef * S
 
-    return drag, lift
+    return lift, drag
 
 
 def wings(altitude, velocity, alpha, chord=0.13, wingspan=1, airfoil_wing="kc135"):
@@ -89,8 +89,20 @@ def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
     return N, N * tail_length
 
 
-def main(altitude, velocity, alpha, delta, brakes=False):
-    pass
+def get_forces(altitude, velocity, alpha, delta, brakes=False):
+    body_lift, body_drag = body(altitude, velocity, alpha)
+    wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha)
+    fin_normal, fin_moment = fins(altitude, velocity, delta)
+    if brakes:
+        fin_drag = brakes(altitude, velocity)
+    else:
+        fin_drag = 0
+
+    lift = body_lift + wing_lift + fin_normal * np.cos(delta)
+    drag = body_drag + wing_drag + fin_normal * np.sin(delta) + fin_drag
+    moment = wing_moment + fin_moment
+
+    return lift, drag, moment
 
 
 if __name__ == "__main__":
