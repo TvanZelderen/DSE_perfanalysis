@@ -30,7 +30,7 @@ Re7 = '1.2m'
 
 def f_airfoil(airfoil_name):
 
-    alphaarr = np.arange(-10, 15, 0.25)
+    alphaarr = np.arange(-10, 15, 0.5)
     clinterp = np.empty((0, len(alphaarr)))
     cdinterp = np.empty((0, len(alphaarr)))
     cminterp = np.empty((0, len(alphaarr)))

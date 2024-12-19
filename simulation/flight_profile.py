@@ -5,8 +5,9 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
-from presets import *
 from forces import get_forces
+from presets import *
+
 from time import perf_counter
 
 def flight_derivatives(state, params):
@@ -56,19 +57,10 @@ def rk4_step(state_0, derivatives_func, params, dt):
     return state_1
 
 
-dt = 0.01  # time step
 
-mass = 20 + 13
-G = 9.81
+effective_wingspan = winglength * np.cos(sweep)
+S_wing = effective_wingspan * wingchord_root
 
-radius = 0.29 / 2
-frontal_area = radius**2 * pi
-
-wingspan = 1
-wingchord = 0.13
-wing_sweep_angle = np.deg2rad(0) # deg
-effective_wingspan = wingspan * np.cos(wing_sweep_angle)
-S_wing = wingspan * wingchord
 if S_wing == 0:
     Ar_wing = 0
 else:
@@ -76,16 +68,14 @@ else:
 
 def update_sweep(sweep: int):
     wing_sweep_angle = np.deg2rad(sweep)
-    effective_wingspan = wingspan * np.cos(wing_sweep_angle)
+    effective_wingspan = winglength * np.cos(wing_sweep_angle)
     if S_wing == 0:
         Ar_wing = 0
     else:
         Ar_wing = (effective_wingspan**2 / S_wing)
 
-finspan = 0.1
-fin_cr = 0.1
-fin_ct = 0.1
-S_fin = finspan * (fin_cr + fin_ct) / 2
+
+S_fin = finspan * (finchord_root + finchord_tip) / 2
 if S_fin == 0:
     Ar_fin = 0
 else:
@@ -129,10 +119,6 @@ max_bank_angle = np.deg2rad(45)
 landing_angle = np.deg2rad(15)
 landing_sequence = False
 
-wing_airfoil = "kc135"
-clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
-
-
 def initialize_states():
     # Set initial conditions
     states['time'].append(0)
@@ -145,7 +131,7 @@ def initialize_states():
     states['theta'].append(0)
     states['altitude'].append(altitude)
     states['distance'].append(distance)
-    states['wing_sweep_angle'].append(wing_sweep_angle)
+    states['wing_sweep_angle'].append(sweep)
     states['ar_wing'].append(Ar_wing)
     states['lift'].append(0)
     states['drag'].append(0)
@@ -162,8 +148,9 @@ def initialize_states():
 print("Starting sim...")
 initialize_states()
 print("Initialised states")
-
+initiate = False
 start = perf_counter()
+
 
 while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
@@ -176,8 +163,8 @@ while not landed:
     alpha = velocity_controller.update(current_state["velocity"], dt)
     # alpha = 0
     alpha_deg = np.rad2deg(alpha)
-
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
+    
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0)
 
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
