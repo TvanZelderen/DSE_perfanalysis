@@ -30,20 +30,16 @@ def extract_cd_cl(df):
     return mach, cd_zero, cda_body, cla_body
 
 
-def interpolate(df=csv2df()):
-    mach, cd_zero, cda_body, cla_body = extract_cd_cl(df)
-    cd_zero_interp = CubicSpline(mach, cd_zero)
-    cda_body_interp = CubicSpline(mach, cda_body)
-    cla_body_interp = CubicSpline(mach, cla_body)
-
-    return cd_zero_interp, cda_body_interp, cla_body_interp
+mach, cd_zero, cda_body, cla_body = extract_cd_cl(csv2df())   ####### Goed ######
+cd_zero_interp = CubicSpline(mach, cd_zero)
+cda_body_interp = CubicSpline(mach, cda_body)
+cla_body_interp = CubicSpline(mach, cla_body)
 
 
-def body_coef(mach, alpha):
+def body_coef(mach, alpha, cd_zero_interp = cd_zero_interp, cda_body_interp = cda_body_interp, cla_body_interp = cla_body_interp): 
 
     if not -10 <= alpha <= 15:
-        raise ValueError("An angle of attack outside of the linear range was given.")
-    cd_zero_interp, cda_body_interp, cla_body_interp = interpolate()  ################## PROBLEM SPOTTED ################
+        raise ValueError("An angle of attack outside of the linear range was given.") 
     body_drag_coef = cd_zero_interp(mach) + cda_body_interp(mach) * alpha
     body_lift_coef = cla_body_interp(mach) * alpha
 
@@ -51,18 +47,18 @@ def body_coef(mach, alpha):
 
 
 def body(altitude, velocity, alpha, S=(0.29 / 2) ** 2 * np.pi):
-    start = perf_counter()
+    # start = perf_counter()
     mach = mach_number(velocity, altitude)
     body_drag_coef, body_lift_coef = body_coef(mach, alpha)
     _, density, _ = get_isa(altitude)
     drag = 0.5 * density * velocity**2 * body_drag_coef * S
     lift = 0.5 * density * velocity**2 * body_lift_coef * S
-    print(f'body() takes {perf_counter() - start}s to run')
+    # print(f'body() takes {perf_counter() - start}s to run')
     return lift, drag
     
 
 def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, cminterp = cminterp, chord=0.13, wingspan=1):
-    start = perf_counter()
+    # start = perf_counter()
     if not -10 <= alpha <= 15:
         raise ValueError("An angle of attack outside of the linear range was given.")
     _, density, temperature = get_isa(altitude)
@@ -76,7 +72,7 @@ def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, c
     D = dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
     M = dyn_pressure * cminterp[entry](reynolds) * s * chord
 
-    print(f'wins() takes {perf_counter() - start}s to run')
+    # print(f'wins() takes {perf_counter() - start}s to run')
 
     return (L, D, M)
 
@@ -88,7 +84,7 @@ def brakes(altitude, velocity, S=0.01 * 4):
 
 
 def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
-    start = perf_counter()
+    # start = perf_counter()
     # TODO: verify and change tail length
     if not -10 <= delta <= 10:
         raise ValueError(
@@ -98,7 +94,7 @@ def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
     horizontal_projection = 4 * np.sqrt(2) / 2 * S
     _, density, _ = get_isa(altitude)
     N = 0.5 * density * velocity**2 * cnδ * delta * horizontal_projection
-    print(f'fins() takes {perf_counter() - start}s to run')
+    # print(f'fins() takes {perf_counter() - start}s to run')
     return N, N * tail_length
 
 
