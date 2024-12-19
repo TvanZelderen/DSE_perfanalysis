@@ -105,9 +105,6 @@ states = {
     'ar_wing': [],
     'lift': [],
     'drag': [],
-    'drag_fins': [],
-    'drag_wings': [],
-    'drag_wave': [],
     'load_factor': [],
     'x': [],
     'y': [],
@@ -150,9 +147,6 @@ def initialize_states():
     states['ar_wing'].append(Ar_wing)
     states['lift'].append(0)
     states['drag'].append(0)
-    states['drag_fins'].append(0)
-    states['drag_wings'].append(0)
-    states['drag_wave'].append(0)
     states['alpha'].append(0)
     states['vertical_speed'].append(0)
     states['load_factor'].append(0)

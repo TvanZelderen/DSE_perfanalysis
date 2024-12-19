@@ -84,14 +84,10 @@ def plot_flight_states(states):
 
     # Drag plot
     axs["bbr"].plot(states['time'], states['drag'])
-    axs["bbr"].plot(states['time'], states['drag_fins'])
-    axs["bbr"].plot(states['time'], states['drag_wings'])
-    axs["bbr"].plot(states['time'], states['drag_wave'])
     axs["bbr"].set_title('Drag vs Time')
     axs["bbr"].set_xlabel('Time (s)')
     axs["bbr"].set_ylabel('Drag (N)')
     axs["bbr"].grid(True)
-    axs["bbr"].legend(["drag", "fins", "wing", "wave"])
 
     # Load factor plot
     # axs["bbr"].plot(states['time'], states['load_factor'])
