@@ -5,6 +5,7 @@ from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
+from presets import *
 
 def flight_derivatives(state, params):
     """
@@ -54,11 +55,6 @@ def rk4_step(state_0, derivatives_func, params, dt):
 
 
 dt = 0.01  # time step
-
-# Initial state
-altitude = 27000
-distance = 16000
-velocity = 200
 
 mass = 20 + 13
 G = 9.81
@@ -304,7 +300,7 @@ while not landed:
 
 print("\n##################################")
 
-print(f"Flight duration: {round(states["time"][-1],1)}")
+print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
 print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
 
