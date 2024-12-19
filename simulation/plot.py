@@ -55,8 +55,8 @@ def plot_flight_states(states):
     # Mach plot
     axs["bl"].plot(states['time'], states['mach'], color='purple')
     axs["bl"].set_title('Mach vs Time')
-    axs["bl"].set_xlabel('Mach')
-    axs["bl"].set_ylabel('Time (s)')
+    axs["bl"].set_xlabel('Time (s)')
+    axs["bl"].set_ylabel('Mach')
     axs["bl"].grid(True)
 
     # Alpha plot
@@ -67,26 +67,25 @@ def plot_flight_states(states):
     axs["mr"].set_ylabel('Alpha (deg)')
     axs["mr"].grid(True)
 
-    # Turn plot
-    turn = [np.rad2deg(x) for x in states['beta']]
-    axs["bbl"].plot(states['time'], turn)
-    axs["bbl"].set_title('Beta vs Time')
+    # Lift plot
+    axs["bbl"].plot(states['time'], states['lift'])
+    axs["bbl"].set_title('Lift vs Time')
     axs["bbl"].set_xlabel('Time (s)')
-    axs["bbl"].set_ylabel('Phi (deg)')
+    axs["bbl"].set_ylabel('Lift (N)')
     axs["bbl"].grid(True)
 
-    # Lift plot
-    axs["bbm"].plot(states['time'], states['lift'])
-    axs["bbm"].set_title('Liftvs Time')
+    # Turn plot
+    axs["bbm"].plot(states['time'], states['drag'])
+    axs["bbm"].set_title('Drag vs Time')
     axs["bbm"].set_xlabel('Time (s)')
-    axs["bbm"].set_ylabel('Lift (N)')
+    axs["bbm"].set_ylabel('Drag (N)')
     axs["bbm"].grid(True)
 
     # Drag plot
-    axs["bbr"].plot(states['time'], states['drag'])
-    axs["bbr"].set_title('Drag vs Time')
+    axs["bbr"].plot(states['time'], states['l_over_d'])
+    axs["bbr"].set_title('L/D vs Time')
     axs["bbr"].set_xlabel('Time (s)')
-    axs["bbr"].set_ylabel('Drag (N)')
+    axs["bbr"].set_ylabel('L/D')
     axs["bbr"].grid(True)
 
     # Load factor plot

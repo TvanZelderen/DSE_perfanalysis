@@ -7,6 +7,7 @@ from velocity_controller import ImprovedVelocityController
 from airfoil import f_airfoil
 from presets import *
 from forces import get_forces
+from time import perf_counter
 
 def flight_derivatives(state, params):
     """
@@ -105,6 +106,7 @@ states = {
     'ar_wing': [],
     'lift': [],
     'drag': [],
+    'l_over_d': [],
     'load_factor': [],
     'x': [],
     'y': [],
@@ -147,6 +149,7 @@ def initialize_states():
     states['ar_wing'].append(Ar_wing)
     states['lift'].append(0)
     states['drag'].append(0)
+    states['l_over_d'].append(0)
     states['alpha'].append(0)
     states['vertical_speed'].append(0)
     states['load_factor'].append(0)
@@ -160,6 +163,8 @@ print("Starting sim...")
 initialize_states()
 print("Initialised states")
 
+start = perf_counter()
+
 while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
     state = (current_state["velocity"], current_state["gamma"], current_state["beta"])
@@ -169,6 +174,7 @@ while not landed:
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
+    # alpha = 0
     alpha_deg = np.rad2deg(alpha)
 
     lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
@@ -215,6 +221,7 @@ while not landed:
 
     states["lift"].append(lift)
     states["drag"].append(drag)
+    states["l_over_d"].append(lift/drag)
     states['moment'].append(moment)
 
     current_state["lift"] = states["lift"][-1]
@@ -249,6 +256,7 @@ while not landed:
         landed = True
 
 print("\n##################################")
+print(f"Simulation time: {perf_counter() - start}\n")
 
 print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
