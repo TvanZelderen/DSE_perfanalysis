@@ -107,6 +107,14 @@ C_nr = -C_Yr*l_v/b #detemined by vertical tail contribution
 
 #aileron and rudder control derivatives are not necessary for eigenvalues
 
+A_lat = 16*mu_b**3*(K_X2*K_Z2-K_XZ**2)
+B_lat = -4*mu_b**2*(2*C_Ybeta*(K_X2*K_Z2-K_XZ**2)+C_nr*K_X2+C_lp*K_Z2+(C_lr+C_np)*K_XZ)
+C_lat = 2*mu_b*((C_Ybeta*C_nr-C_Yr*C_nbeta)*K_X2+(C_Ybeta*C_lp-C_lbeta*C_Yp)*K_Z2+((C_Ybeta*C_np-C_nbeta*C_Yp)+(C_Ybeta*C_lr-C_lbeta*C_Yr))*K_XZ+4*mu_b*C_nbeta*K_X2+4*mu_b*C_lbeta*K_XZ+0.5*(C_lp*C_nr-C_np*C_lr))
+D_lat = -4*mu_b*C_L*(C_lbeta*K_Z2+C_nbeta*K_XZ)+2*mu_b*(C_lbeta*C_np-C_nbeta*C_lp)+0.5*C_Ybeta*(C_lr*C_np-C_nr*C_lp)+0.5*C_Yp*(C_lbeta*C_nr-C_nbeta*C_lr)+0.5*C_Yr*(C_lp*C_nbeta-C_np*C_lbeta)
+E_lat = C_L*(C_lbeta*C_nr-C_nbeta*C_lr)
+
+coefficients = [A_lat, B_lat, C_lat, D_lat, E_lat]
+lateralstabilityeigenvalues = np.roots(coefficients)
 
 
 
