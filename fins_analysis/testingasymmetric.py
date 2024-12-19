@@ -9,7 +9,7 @@ C_lp = -0.3444
 C_np = -0.0108
 C_Yr = 0.43
 C_lr = 0.28
-C_nr = -.193
+C_nr = -0.193
 C_Ydeltaa = 0
 C_ldetaa = -0.2349
 C_ndeltaa = 0.0286
@@ -33,3 +33,6 @@ print(A, B, C, D, E)
 coefficients = [A, B, C, D, E]
 roots = np.roots(coefficients)
 print(roots)
+
+ans = C_lbeta*C_nr-C_nbeta*C_lr
+print(ans)

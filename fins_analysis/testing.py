@@ -28,10 +28,3 @@ coefficients = [A, B, C, D, E]
 roots = np.roots(coefficients)
 print(roots)
 
-
-
-M = [[C_Xu-2*mu_c, C_Xalpha, C_Z0, 0],
-     [C_Zu,C_Zalpha+(C_Zdiffalpha-2*mu_c), -C_X0, C_Zq+2*mu_c],
-     [0,0,-1,1],
-     [C_Mu,C_Malpha+C_Mdiffalpha,0,C_Mq-2*mu_c*K_Y2]]
-#print(np.linalg.eigvals(M))
