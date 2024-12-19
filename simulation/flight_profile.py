@@ -104,15 +104,6 @@ clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
 
 # # print(alpha_clcdmax)
 
-finspan = 0.1
-fin_cr = 0.1
-fin_ct = 0.1
-S_fin = finspan * (fin_cr + fin_ct) / 2
-if S_fin == 0:
-    Ar_fin = 0
-else:
-    Ar_fin = finspan**2 / S_fin
-
 states = {
     'time': [],
     'velocity': [],
@@ -193,24 +184,26 @@ while not landed:
     state = (current_state["velocity"], current_state["gamma"], current_state["beta"])
 
     pressure, density, temperature = get_isa(current_state["altitude"])
+    kinematic_viscousity = u * (temperature / T0) ** 1.5 * ((T0 + C_s) / (temperature + C_s)) / density
+    Reynolds_number = current_state['velocity'] * wingchord / kinematic_viscousity
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
 
-    cla_fin = float(clalpha_fin(0))
+    cla_fin = float(clalpha_fin[int((np.rad2deg(alpha) + 10) / 0.25)](Reynolds_number))
     if S_fin == 0:
         induced_drag_fins = 0
     else:
         induced_drag_fins = (
-            dyn_press * (cd0_fin + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
+            dyn_press * (cd0_fin[40](Reynolds_number) + cla_fin**2 / (np.pi * e * Ar_fin)) * S_fin
         )
-    cla_wing = float(clalpha_wing(alpha))
+    cla_wing = float(clalpha_wing[int((np.rad2deg(alpha) + 10) / 0.25)](Reynolds_number))
     if S_wing == 0:
         induced_drag_wing = 0
     else:
         induced_drag_wing = (
-            dyn_press * (cd0_wing + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
+            dyn_press * (cd0_wing[40](Reynolds_number) + cla_wing**2 / (np.pi * e * Ar_wing)) * S_wing
         )
     drag_body = dyn_press * frontal_area * launch_vehicle_drag_coef(mach)
     drag = induced_drag_fins + induced_drag_wing + drag_body
@@ -218,7 +211,7 @@ while not landed:
     states['drag_wings'].append(induced_drag_wing)
     states['drag_wave'].append(drag_body)
 
-    cma = float(cmalpha_wing(alpha))
+    cma = float(cmalpha_wing[int((np.rad2deg(alpha) + 10) / 0.25)](Reynolds_number))
     wing_moment = cma * dyn_press * S_wing * wingchord
 
     ########### Turn Implementation ##########
@@ -253,9 +246,9 @@ while not landed:
     distance = distance = (
         current_state["distance"] + horizontal_new * dt
     )  # V * cos(gamma)
-    lift = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing * np.cos(current_state['theta'])
+    lift = dyn_press * cla_wing * S_wing * np.cos(current_state['theta'])
 
-    load_factor = dyn_press * clalpha_wing(np.rad2deg(alpha)) * S_wing / current_state['weight']
+    load_factor = dyn_press * cla_wing * S_wing / current_state['weight']
 
     dx = current_state['velocity'] * np.cos(current_state['gamma']) * np.cos(current_state['beta']) * dt
     dy = current_state['velocity'] * np.cos(current_state['gamma']) * np.sin(current_state['beta']) * dt
@@ -293,7 +286,7 @@ while not landed:
 
     states["air_density"].append(density)
     states["dyn_press"].append(dyn_press)
-    states["cl"].append(clalpha_wing(np.rad2deg(alpha)))
+    states["cl"].append(cla_wing)
 
     if current_state["altitude"] < 0:
         landed = True

@@ -24,8 +24,11 @@ finchord_tip = 0.05
 S_fin = (finchord_root + finchord_tip) * finspan / 2
 Ar_fin = finspan ** 2 / S_fin
 
-############  Physics  ###########
+############  Physics and Atmosphere ###########
 G = 9.80665
+T0 = 288.15
+u = 1.461E-5
+C_s = 110.4
 
 ############  Starting Conditions  ###########
 altitude = 27000

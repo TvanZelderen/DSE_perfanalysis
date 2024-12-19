@@ -26,6 +26,7 @@ Re3 = '100k'
 Re4 = '250k'
 Re5 = '500k'
 Re6 = '800k'
+Re7 = '1.2m'
 
 def f_airfoil(airfoil_name):
 
@@ -33,7 +34,7 @@ def f_airfoil(airfoil_name):
     clinterp = np.empty((0, len(alphaarr)))
     cdinterp = np.empty((0, len(alphaarr)))
     cminterp = np.empty((0, len(alphaarr)))
-    Reyarr = np.array([30000, 50000, 100000, 250000, 500000, 800000])
+    Reyarr = np.array([30000, 50000, 100000, 250000, 500000, 800000, 1200000])
     cl_interpolation = np.array([])
     cd_interpolation = np.array([])
     cm_interpolation = np.array([])
@@ -47,6 +48,7 @@ def f_airfoil(airfoil_name):
     airfoil_name + '-' + Re4 + '.csv',
     airfoil_name + '-' + Re5 + '.csv',
     airfoil_name + '-' + Re6 + '.csv',
+    airfoil_name + '-' + Re7 + '.csv'
     ]
 
     for i in range(0, len(airfoils)):  
