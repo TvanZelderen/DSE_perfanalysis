@@ -53,12 +53,12 @@ def rk4_step(state_0, derivatives_func, params, dt):
 
     return state_1
 
+airfoil_wing = "kc135"
+airfoil_fin = "naca0009"
 
-dt = 0.01  # time step
 effective_span = np.cos(np.deg2rad(sweep)) * winglength
 S_wing = (wingchord_root + wingchord_tip) * effective_span / 2
 Ar_wing = effective_span ** 2 / S_wing
-
 
 def update_sweep(new_sweep: int):
     sweep = np.deg2rad(new_sweep)
@@ -68,9 +68,6 @@ def update_sweep(new_sweep: int):
     else:
         Ar_wing = (effective_wingspan**2 / S_wing)
     return effective_span, Ar_wing
-e = 0.6
-airfoil_wing = "kc135"
-airfoil_fin = "naca0009"
 
 clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
     airfoil_name=airfoil_wing
