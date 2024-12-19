@@ -14,6 +14,8 @@ for filename in os.listdir(read_directory):
     output_file_path = os.path.join(output_directory, filename.replace('.txt', '.csv'))
     with open(input_file_path, 'r') as txt_file, open(output_file_path, 'w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
+        for _ in range(11):
+            next(txt_file)  # This reads and discards the first 11 lines
         for line in txt_file:
         # Split the line into columns (adjust delimiter as needed)
             columns = line.split()  # Default splits by any whitespace
