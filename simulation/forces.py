@@ -53,7 +53,6 @@ def wings(altitude, velocity, alpha):
     if not -10 <= alpha <= 10:
         raise ValueError("An angle of attack outside of the linear range was given.")
     
-    
 
 
 def brakes(altitude, velocity, S=0.01*4):
