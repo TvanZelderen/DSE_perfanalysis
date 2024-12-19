@@ -1,19 +1,22 @@
 import numpy as np
 
+dt = 0.01
 ############  Launch Ring Characteristics  ##########
-m = 20
+mass = 20
+diameter = 0.29
+radius = diameter / 2
 L_body = 0.8
 L_nose = 1
+frontal_area = radius ** 2 * np.pi
 
 ############  Wing Characteristics  ###########
 winglength = 1
 
 wingchord_root = 0.13
 wingchord_tip = 0.13
-sweep = 0   # degrees
-effective_span = np.cos(np.deg2rad(sweep)) * winglength
-S_wing = (wingchord_root + wingchord_tip) * effective_span / 2
-Ar_wing = effective_span ** 2 / S_wing
+sweep = 45   # degrees
+# effective_span = np.cos(np.deg2rad(sweep)) * winglength
+
 e = 0.65
 
 ############  Fin Characteristics  ###########
@@ -24,8 +27,11 @@ finchord_tip = 0.05
 S_fin = (finchord_root + finchord_tip) * finspan / 2
 Ar_fin = finspan ** 2 / S_fin
 
-############  Physics  ###########
+############  Physics and Atmosphere ###########
 G = 9.80665
+T0 = 288.15
+u = 1.461E-5  # Dynamic viscousity at sea level
+C_s = 110.4   # Sutherland's constant, used for kinematic viscousity calculation
 
 ############  Starting Conditions  ###########
 altitude = 27000
