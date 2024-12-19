@@ -75,11 +75,11 @@ def plot_flight_states(states):
     axs["bbl"].set_ylabel('Phi (deg)')
     axs["bbl"].grid(True)
 
-    # Lift plot
-    axs["bbm"].plot(states['time'], states['lift'])
-    axs["bbm"].set_title('Lift vs Time')
+    # Reynolds plot
+    axs["bbm"].plot(states['time'], states['Re'])
+    axs["bbm"].set_title('Reynolds number vs Time')
     axs["bbm"].set_xlabel('Time (s)')
-    axs["bbm"].set_ylabel('Lift (N)')
+    axs["bbm"].set_ylabel('Re')
     axs["bbm"].grid(True)
 
     # Drag plot

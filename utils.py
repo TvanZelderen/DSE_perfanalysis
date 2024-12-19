@@ -51,5 +51,13 @@ def mach_number(velocity, altitude):
     return velocity / get_local_speed_of_sound(altitude)
 
 
+def dynamic_viscousity(Temperature):
+    u0 = 1.461E-5
+    T0 = 288.15
+    C = 110.4
+    u = (Temperature/T0) ** 1.5 * ((T0 + C) / (Temperature + C)) * u0
+    return u
+
+
 if __name__ == "__main__":
     pass

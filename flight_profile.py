@@ -1,6 +1,6 @@
 from interpol_drag import launch_vehicle_drag_coef
 import numpy as np
-from utils import get_isa, dynamic_pressure, mach_number
+from utils import get_isa, dynamic_pressure, mach_number, dynamic_viscousity
 from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
@@ -132,6 +132,7 @@ states = {
     'q': [], 
     'Cm': [],
     'M': [],
+    'Re': [],
 }
 
 manoeuvres = {
@@ -184,6 +185,8 @@ def initialize_states():
     states['q'].append(0)
     states['Cm'].append(0)
     states['M'].append(0)
+    states['Re'].append(0)
+
 
 print("Starting sim...")
 initialize_states()
@@ -198,6 +201,7 @@ def run_sim(states):
         state = (current_state["velocity"], current_state["gamma"])
 
         pressure, density, temperature = get_isa(current_state["altitude"])
+        kinematic_viscousity = dynamic_viscousity(temperature) / density
         dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
         mach = mach_number(current_state["velocity"], current_state["altitude"])
         # print(mach)
@@ -383,6 +387,7 @@ def run_sim(states):
         states["air_density"].append(density)
         states["Cl"].append(clalpha_wing(np.rad2deg(alpha)))
         states["M"].append(cmalpha_wing(np.rad2deg(alpha)) * S_wing * dyn_press * wingchord)
+        states["Re"].append(current_state['velocity'] * wingchord / kinematic_viscousity)
 
         if current_state["altitude"] < 0:
             print(f"landed with angle of {np.rad2deg(current_state['gamma'])} degrees")
@@ -405,6 +410,7 @@ print(f"max lift: {max(states['lift'])}")
 print(f"max drag: {max(states['drag'])}")
 print(f"max n: {max(states['load_factor'])}")
 print(f"max M: {min(states['M'])}")
+print(f"Reynolds number at start: {states['Re'][1]}, at the end: {states['Re'][-1]}")
 
 # if states['velocity'][-1] < (np.sqrt(2 * mass * G / (states['air_density'] * S_wing * clalpha_wing(alpha)))):
 #     # print('stall speed', np.sqrt(2 * mass * G / (density * S_wing * clalpha_wing(alpha))))
