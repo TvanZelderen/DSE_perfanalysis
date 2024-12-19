@@ -88,15 +88,13 @@ def f_airfoil(airfoil_name):
         ultimate_solution1 = np.append(ultimate_solution1, clreynolds)
         ultimate_solution2 = np.append(ultimate_solution2, cdreynolds)
         ultimate_solution3 = np.append(ultimate_solution3, cmreynolds)
-        # cd = data_wing['CD'].to_list()
-        # ultimate_solution = np.vstack((ultimate_solution1, ultimate_solution2, ultimate_solution3))
 
-            # xflr5_data.
-    # cm = cmarr[np.where(alphaarr == alpha)]
-    # print(cd0)
     return ultimate_solution1, ultimate_solution2, ultimate_solution3
 
 if __name__ == '__main__':
     airfoil_wing = 'kc135'
     clinterp, cdinterp, cminterp = f_airfoil(airfoil_name = airfoil_wing)
-    print(clinterp[40](30000))
+    alpha = 8
+    entry = int((alpha + 10) / 0.25)
+    print(entry)
+    print(clinterp[entry](30000))

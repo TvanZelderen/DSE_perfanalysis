@@ -50,6 +50,12 @@ def dynamic_pressure(velocity, altitude):
 def mach_number(velocity, altitude):
     return velocity / get_local_speed_of_sound(altitude)
 
+def sutherland(temperature):
+    return 1.716E-5 * (273.15+110.4) / (temperature+110.4) * (temperature/273.15)**(3/2)
+
+def get_reynolds_number(density, velocity, length, temperature):
+    dynamic_viscocity = sutherland(temperature)
+    return density * velocity * length / dynamic_viscocity
 
 if __name__ == "__main__":
     for i in range(28):
