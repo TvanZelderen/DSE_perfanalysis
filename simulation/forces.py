@@ -60,12 +60,13 @@ def wings(altitude, velocity, alpha, chord=0.13, wingspan=1, airfoil_wing="kc135
     _, density, temperature = get_isa(altitude)
     reynolds = get_reynolds_number(density, velocity, chord, temperature)
     clinterp, cdinterp, cminterp = f_airfoil(airfoil_name=airfoil_wing)
-    entry = (alpha + 10) / 0.25
+    entry = int((alpha + 10) / 0.25)
     dyn_pressure = 0.5 * density * velocity**2
     s = chord * wingspan
+    wing_factor = 0.65
     return (
-        dyn_pressure * clinterp[entry](reynolds) * s,
-        dyn_pressure * cdinterp[entry](reynolds) * s,
+        dyn_pressure * clinterp[entry](reynolds) * s * wing_factor,
+        dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor,
         dyn_pressure * cminterp[entry](reynolds) * s * chord,
     )
 
@@ -98,12 +99,23 @@ def get_forces(altitude, velocity, alpha, delta, brakes=False):
     else:
         fin_drag = 0
 
+    # print(f"Lift: {body_lift}, {wing_lift}, {fin_normal * np.cos(delta)}")
+    # print(f"Drag: {body_drag}, {wing_drag}, {fin_normal * np.sin(delta)}, {fin_drag}")
+
     lift = body_lift + wing_lift + fin_normal * np.cos(delta)
     drag = body_drag + wing_drag + fin_normal * np.sin(delta) + fin_drag
     moment = wing_moment + fin_moment
 
     return lift, drag, moment
 
+def get_max_ld(altitude, velocity):
+    max_ld = [0, 0]
+    for alpha in range(-10, 11):
+        lift, drag, moment = get_forces(10000, 200, alpha, 0)
+        if lift/drag > max_ld[0]:
+            max_ld = [lift/drag, alpha]
+    return max_ld
+
 
 if __name__ == "__main__":
-    print(body(2, 2))
+    print(get_max_ld(5000, 100))

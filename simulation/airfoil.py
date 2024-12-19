@@ -51,9 +51,6 @@ def f_airfoil(airfoil_name):
     ultimate_solution3 = np.array([])
 
 
-    
-    print(np.shape(alphaarr))
-
     airfoils = [
     airfoil_name + '-' + Re1 + '.csv',
     airfoil_name + '-' + Re2 + '.csv',
