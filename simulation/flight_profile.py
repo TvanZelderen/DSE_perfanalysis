@@ -130,6 +130,9 @@ max_bank_angle = np.deg2rad(45)
 landing_angle = np.deg2rad(15)
 landing_sequence = False
 
+wing_airfoil = "kc135"
+clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
+
 
 def initialize_states():
     # Set initial conditions
@@ -174,7 +177,7 @@ while not landed:
     alpha = velocity_controller.update(current_state["velocity"], dt)
     alpha_deg = np.rad2deg(alpha)
 
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, delta=0)
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
 
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
