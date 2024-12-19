@@ -54,44 +54,32 @@ def rk4_step(state_0, derivatives_func, params, dt):
 
     return state_1
 
-airfoil_wing = "kc135"
-airfoil_fin = "naca0009"
 
-effective_span = np.cos(np.deg2rad(sweep)) * winglength
-S_wing = (wingchord_root + wingchord_tip) * effective_span / 2
-Ar_wing = effective_span ** 2 / S_wing
+dt = 0.01  # time step
 
-def update_sweep(new_sweep: int):
-    sweep = np.deg2rad(new_sweep)
-    effective_wingspan = winglength * np.cos(sweep)
+mass = 20 + 13
+G = 9.81
+
+radius = 0.29 / 2
+frontal_area = radius**2 * pi
+
+wingspan = 1
+wingchord = 0.13
+wing_sweep_angle = np.deg2rad(0) # deg
+effective_wingspan = wingspan * np.cos(wing_sweep_angle)
+S_wing = wingspan * wingchord
+if S_wing == 0:
+    Ar_wing = 0
+else:
+    Ar_wing = (effective_wingspan**2 / S_wing)
+
+def update_sweep(sweep: int):
+    wing_sweep_angle = np.deg2rad(sweep)
+    effective_wingspan = wingspan * np.cos(wing_sweep_angle)
     if S_wing == 0:
         Ar_wing = 0
     else:
         Ar_wing = (effective_wingspan**2 / S_wing)
-
-e = 0.6
-airfoil_wing = "kc135"
-airfoil_fin = "naca0009"
-
-clalpha_wing, cd0_wing, cmalpha_wing = f_airfoil(
-    airfoil_name=airfoil_wing
-)
-clalpha_fin, cd0_fin, cmalpha_fin = f_airfoil(
-    airfoil_name=airfoil_fin
-)
-
-# alpha_clcdmax = {}
-# for alpha in range(-100, 150):
-#     try:
-#         cl = clalpha_wing(alpha/10)
-#         cd_0 = cd0_wing
-#         cd = cd_0 + cl**2/(np.pi * e * wingspan**2 / S_wing)
-#         print(alpha/10, cl, cd, cd_0)
-#         alpha_clcdmax[alpha/10] = cl/cd
-#     except ValueError:
-#         pass
-
-# # print(alpha_clcdmax)
 
 finspan = 0.1
 fin_cr = 0.1
@@ -155,7 +143,7 @@ def initialize_states():
     states['theta'].append(0)
     states['altitude'].append(altitude)
     states['distance'].append(distance)
-    states['wing_sweep_angle'].append(sweep)
+    states['wing_sweep_angle'].append(wing_sweep_angle)
     states['ar_wing'].append(Ar_wing)
     states['lift'].append(0)
     states['drag'].append(0)
@@ -180,8 +168,6 @@ while not landed:
     state = (current_state["velocity"], current_state["gamma"], current_state["beta"])
 
     pressure, density, temperature = get_isa(current_state["altitude"])
-    kinematic_viscousity = u * (temperature / T0) ** 1.5 * ((T0 + C_s) / (temperature + C_s)) / density
-    Reynolds_number = current_state['velocity'] * wingchord_root / kinematic_viscousity
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
@@ -199,7 +185,7 @@ while not landed:
         print("Spiral started")
     if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
-        effective_span, Ar_wing = update_sweep(0)
+        update_sweep(0)
         print("Landing sequence started")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
