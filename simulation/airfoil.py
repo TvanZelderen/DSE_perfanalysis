@@ -80,7 +80,4 @@ def f_airfoil(airfoil_name):
 if __name__ == '__main__':
     airfoil_wing = 'kc135'
     clinterp, cdinterp, cminterp = f_airfoil(airfoil_name = airfoil_wing)
-    print(clinterp[72](700000))
-
-
-
+    print(clinterp[40](30000))
