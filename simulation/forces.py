@@ -5,7 +5,7 @@ import numpy as np
 from utils import get_isa, mach_number, get_reynolds_number
 from airfoil import f_airfoil
 from presets import wing_airfoil
-from multiprocessing import Pool
+from time import perf_counter
 
 clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
 
@@ -43,7 +43,7 @@ def body_coef(mach, alpha):
 
     if not -10 <= alpha <= 15:
         raise ValueError("An angle of attack outside of the linear range was given.")
-    cd_zero_interp, cda_body_interp, cla_body_interp = interpolate()
+    cd_zero_interp, cda_body_interp, cla_body_interp = interpolate()  ################## PROBLEM SPOTTED ################
     body_drag_coef = cd_zero_interp(mach) + cda_body_interp(mach) * alpha
     body_lift_coef = cla_body_interp(mach) * alpha
 
@@ -51,16 +51,18 @@ def body_coef(mach, alpha):
 
 
 def body(altitude, velocity, alpha, S=(0.29 / 2) ** 2 * np.pi):
+    start = perf_counter()
     mach = mach_number(velocity, altitude)
     body_drag_coef, body_lift_coef = body_coef(mach, alpha)
     _, density, _ = get_isa(altitude)
     drag = 0.5 * density * velocity**2 * body_drag_coef * S
     lift = 0.5 * density * velocity**2 * body_lift_coef * S
-
+    print(f'body() takes {perf_counter() - start}s to run')
     return lift, drag
     
 
 def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, cminterp = cminterp, chord=0.13, wingspan=1):
+    start = perf_counter()
     if not -10 <= alpha <= 15:
         raise ValueError("An angle of attack outside of the linear range was given.")
     _, density, temperature = get_isa(altitude)
@@ -69,49 +71,14 @@ def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, c
     dyn_pressure = 0.5 * density * velocity**2
     s = chord * wingspan
     wing_factor = 0.65
-
-    return (
-        dyn_pressure * clinterp[entry](reynolds) * s * wing_factor,
-        dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor,
-        dyn_pressure * cminterp[entry](reynolds) * s * chord,
-    )  ##### I think here is the issue, if only we can think of a way to parallelise this three process
-
-# def compute_wing_force(args):
-#     func, dyn_pressure, interp, entry, reynolds, s, factor_or_chord = args
-#     return func(dyn_pressure, interp, entry, reynolds, s, factor_or_chord)
-
-# def compute_lift(dyn_pressure, clinterp, entry, reynolds, s, wing_factor):
-#     return dyn_pressure * clinterp[entry](reynolds) * s * wing_factor
-
-# def compute_drag(dyn_pressure, cdinterp, entry, reynolds, s, wing_factor):
-#     return dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
-
-# def compute_moment(dyn_pressure, cminterp, entry, reynolds, s, chord):
-#     return dyn_pressure * cminterp[entry](reynolds) * s * chord
-
-# def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, cminterp = cminterp, chord=0.13, wingspan=1):
-#     print(alpha)
-#     if not -10 <= alpha <= 15:
-#         raise ValueError("An angle of attack outside of the linear range was given.")
     
-#     _, density, temperature = get_isa(altitude)
-#     reynolds = get_reynolds_number(density, velocity, chord, temperature)
-#     entry = int((alpha + 10) / 0.25)
-#     dyn_pressure = 0.5 * density * velocity**2
-#     s = chord * wingspan
-#     wing_factor = 0.65
+    L = dyn_pressure * clinterp[entry](reynolds) * s * wing_factor
+    D = dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
+    M = dyn_pressure * cminterp[entry](reynolds) * s * chord
 
-#     with Pool(processes=3) as pool:
-#         results = pool.map(
-#             compute_wing_force,
-#             [
-#                 (compute_lift, dyn_pressure, clinterp, entry, reynolds, s, wing_factor),
-#                 (compute_drag, dyn_pressure, cdinterp, entry, reynolds, s, wing_factor),
-#                 (compute_moment, dyn_pressure, cminterp, entry, reynolds, s, chord),
-#             ],
-#         )
-#     print(alpha, results[0], results[1], results[2])
-#     return results[0], results[1], results[2]
+    print(f'wins() takes {perf_counter() - start}s to run')
+
+    return (L, D, M)
 
 
 def brakes(altitude, velocity, S=0.01 * 4):
@@ -121,6 +88,7 @@ def brakes(altitude, velocity, S=0.01 * 4):
 
 
 def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
+    start = perf_counter()
     # TODO: verify and change tail length
     if not -10 <= delta <= 10:
         raise ValueError(
@@ -130,6 +98,7 @@ def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
     horizontal_projection = 4 * np.sqrt(2) / 2 * S
     _, density, _ = get_isa(altitude)
     N = 0.5 * density * velocity**2 * cnδ * delta * horizontal_projection
+    print(f'fins() takes {perf_counter() - start}s to run')
     return N, N * tail_length
 
 
