@@ -262,7 +262,6 @@ print(f"Position at touchdown: {round(current_state['x']), round(current_state['
 
 print(f"Maximum lift: {max(states['lift']):.2f}")
 print(f"Maximum drag: {max(states['drag']):.2f}")
-print(f"Maximum wing moment: {min(states['wing_moment']):.2f}\n")
 
 print(f"Maximum Mach number: {max(states['mach']):.2f}")
 print(f"Maximum dynamic pressure: {max(states['dyn_press']):.2f}")
