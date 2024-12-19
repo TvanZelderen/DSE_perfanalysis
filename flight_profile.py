@@ -86,7 +86,7 @@ radius = 0.29 / 2
 frontal_area = radius**2 * pi
 
 wingspan = 1
-wingchord = 0.12
+wingchord = 0.1
 wing_sweep_angle = np.deg2rad(60) # deg
 effective_wingspan = wingspan * np.cos(wing_sweep_angle)
 S_wing = wingspan * wingchord
