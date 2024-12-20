@@ -166,9 +166,6 @@ while not landed:
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
     # alpha = 0
-    alpha_deg = np.rad2deg(alpha)
-    
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
 
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
@@ -186,6 +183,9 @@ while not landed:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
         alpha = np.deg2rad(8)
         spiral = False
+
+    alpha_deg = np.rad2deg(alpha)
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
 
     horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
     if turn or spiral:

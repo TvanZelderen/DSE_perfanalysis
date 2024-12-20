@@ -65,7 +65,7 @@ def wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp, chord=0.13, w
     entry = int((alpha + 10) / dalpha)
     dyn_pressure = 0.5 * density * velocity**2
     s = chord * wingspan
-    wing_factor = 0.65
+    wing_factor = 1
     
     L = dyn_pressure * clinterp[entry](reynolds) * s * wing_factor
     D = dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
