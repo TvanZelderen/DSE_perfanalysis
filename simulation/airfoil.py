@@ -4,6 +4,7 @@ import scipy as sp
 import os
 import pandas as pd
 from pathlib import Path
+from presets import dalpha, e
 
 ############################################## Read Instructions #############################################
 ############################################## Read Instructions #############################################
@@ -28,8 +29,6 @@ Re6 = '800k'
 Re7 = '1.2m'
 
 Ar = 7.7
-e = 0.65
-dalpha = 0.5
 
 def f_airfoil(airfoil_name, Ar, e, wing = True):
 
@@ -53,8 +52,6 @@ def f_airfoil(airfoil_name, Ar, e, wing = True):
     airfoil_name + '-' + Re6 + '.csv',
     airfoil_name + '-' + Re7 + '.csv'
     ]
-
-
 
     for i in range(0, len(airfoils)):  
         data_airfoil = pd.read_csv(os.path.join(Path('airfoil_database') , airfoils[i]))
@@ -85,9 +82,9 @@ def f_airfoil(airfoil_name, Ar, e, wing = True):
 
         cl_interpolation = np.append(cl_interpolation, clreynolds)
         cd_interpolation = np.append(cd_interpolation, cdreynolds)
-        cm_interpolation = np.append(cm_interpolation, cmreynolds)
+        cm_interpolation = np.append(cm_interpolation, cmreynolds) 
 
-    return cl_interpolation, cd_interpolation, cm_interpolation
+    return cl_interpolation, cd_interpolation, cm_interpolation 
 
 if __name__ == '__main__':
     airfoil_wing = 'kc135'
