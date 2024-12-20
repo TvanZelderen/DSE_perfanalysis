@@ -115,7 +115,7 @@ spiral = False
 landing_sequence = False
 
 wing_airfoil = "kc135"
-clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil, Ar = Ar_wing, e = e, wing = True)
+clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil, Ar = Ar_wing, e = e, wing = False)
 
 def initialize_states():
     # Set initial conditions
@@ -146,7 +146,6 @@ def initialize_states():
 print("Starting sim...")
 initialize_states()
 print("Initialised states")
-initiate = False
 start = perf_counter()
 
 
@@ -171,7 +170,6 @@ while not landed:
         print(f"Spiral started, {current_state['time']:.1f}s")
     if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
-        print(sweep)
         print(f"Landing sequence started, {current_state['time']:.1f}s")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
