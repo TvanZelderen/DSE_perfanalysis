@@ -1,11 +1,10 @@
-from interpol_drag import launch_vehicle_drag_coef
 import numpy as np
 from utils import get_isa, dynamic_pressure, mach_number
 from math import pi
 from plot import plot_flight_states
 from velocity_controller import ImprovedVelocityController
-from airfoil import f_airfoil
 from forces import get_forces
+from airfoil import f_airfoil
 from presets import *
 
 from time import perf_counter
@@ -80,6 +79,8 @@ if S_fin == 0:
     Ar_fin = 0
 else:
     Ar_fin = finspan**2 / S_fin
+
+clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil, Ar = Ar_wing, e = e, wing = True)
 
 states = {
     'time': [],
@@ -176,6 +177,7 @@ while not landed:
     if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
         update_sweep(0)
+        print(sweep)
         print("Landing sequence started")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])

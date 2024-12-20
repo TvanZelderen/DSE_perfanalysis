@@ -1,6 +1,8 @@
 import numpy as np
 
 dt = 0.01  # Timestep
+dalpha = 0.5  # Alpha step
+alpha_range = np.arange(-10, 15, dalpha)
 ############  Launch Ring Characteristics  ##########
 mass = 20
 diameter = 0.29
@@ -15,8 +17,6 @@ winglength = 1
 wingchord_root = 0.13
 wingchord_tip = 0.13
 sweep = 45   # degrees
-# effective_span = np.cos(np.deg2rad(sweep)) * winglength
-
 e = 0.65
 
 ############  Fin Characteristics  ###########

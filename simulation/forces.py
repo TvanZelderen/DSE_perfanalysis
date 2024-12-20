@@ -3,11 +3,10 @@ import pandas as pd
 from scipy.interpolate import CubicSpline
 import numpy as np
 from utils import get_isa, mach_number, get_reynolds_number
-from airfoil import f_airfoil
-from presets import wing_airfoil
 from time import perf_counter
+from presets import wing_airfoil, dalpha
 
-clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
+
 
 def csv2df():
     script_dir = Path(__file__).parent.resolve()
@@ -63,7 +62,7 @@ def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, c
         raise ValueError("An angle of attack outside of the linear range was given.")
     _, density, temperature = get_isa(altitude)
     reynolds = get_reynolds_number(density, velocity, chord, temperature)
-    entry = int((alpha + 10) / 0.5)
+    entry = int((alpha + 10) / dalpha)
     dyn_pressure = 0.5 * density * velocity**2
     s = chord * wingspan
     wing_factor = 0.65
@@ -72,7 +71,7 @@ def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, c
     D = dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
     M = dyn_pressure * cminterp[entry](reynolds) * s * chord
 
-    # print(f'wins() takes {perf_counter() - start}s to run')
+    # print(f'wings() takes {perf_counter() - start}s to run')
 
     return (L, D, M)
 

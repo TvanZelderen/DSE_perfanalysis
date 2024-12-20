@@ -4,7 +4,6 @@ import scipy as sp
 import os
 import pandas as pd
 from pathlib import Path
-# import airfoil_database
 
 ############################################## Read Instructions #############################################
 ############################################## Read Instructions #############################################
@@ -28,9 +27,13 @@ Re5 = '500k'
 Re6 = '800k'
 Re7 = '1.2m'
 
-def f_airfoil(airfoil_name):
+Ar = 7.7
+e = 0.65
+dalpha = 0.5
 
-    alphaarr = np.arange(-10, 15, 0.5)
+def f_airfoil(airfoil_name, Ar, e, wing = True):
+
+    alphaarr = np.arange(-10, 15, dalpha)
     clinterp = np.empty((0, len(alphaarr)))
     cdinterp = np.empty((0, len(alphaarr)))
     cminterp = np.empty((0, len(alphaarr)))
@@ -51,19 +54,26 @@ def f_airfoil(airfoil_name):
     airfoil_name + '-' + Re7 + '.csv'
     ]
 
-    for i in range(0, len(airfoils)):  
-        data_wing = pd.read_csv(os.path.join(Path('airfoil_database') , airfoils[i]))
-        alpha = np.array(data_wing.iloc[:, 0])
 
-        cl = np.array(data_wing.iloc[:, 1])
+
+    for i in range(0, len(airfoils)):  
+        data_airfoil = pd.read_csv(os.path.join(Path('airfoil_database') , airfoils[i]))
+        alpha = np.array(data_airfoil.iloc[:, 0])
+
+        cl = np.array(data_airfoil.iloc[:, 1])
+        if wing:
+            for k in range(0, len(cl)): 
+                alpha_induced = cl[k] / (np.pi * e * Ar)
+                alpha[k] = alpha[k] + np.rad2deg(alpha_induced)
+        # print(alpha)
         clalpha = sp.interpolate.interp1d(alpha, cl)
         clinterp = np.vstack((clinterp, clalpha(alphaarr)))
 
-        cd = np.array(data_wing.iloc[:, 2])
+        cd = np.array(data_airfoil.iloc[:, 2])
         cdalpha = sp.interpolate.interp1d(alpha, cd)
         cdinterp = np.vstack((cdinterp, cdalpha(alphaarr)))
         
-        cm = np.array(data_wing.iloc[:, 4])
+        cm = np.array(data_airfoil.iloc[:, 4])
         cmalpha = sp.interpolate.interp1d(alpha, cm)
         cminterp = np.vstack((cminterp, cmalpha(alphaarr)))
 
@@ -81,5 +91,14 @@ def f_airfoil(airfoil_name):
 
 if __name__ == '__main__':
     airfoil_wing = 'kc135'
-    clinterp, cdinterp, cminterp = f_airfoil(airfoil_name = airfoil_wing)
-    print(clinterp[40](30000))
+    clinterp, cdinterp, cminterp = f_airfoil(airfoil_name = airfoil_wing, Ar = Ar, e = e, wing = True)
+    # print(clinterp[40](300000))
+    alphaarr = np.arange(-10, 15, 0.5)
+    clarr = np.array([])
+    for a in alphaarr: 
+        clarr = np.append(clarr, clinterp[int((a + 10)/0.5)](300000))
+    print(clinterp[40](300000))
+    plt.figure()
+    plt.plot(alphaarr, clarr)
+    plt.show()
+    # print(clinterp[40](30000))
