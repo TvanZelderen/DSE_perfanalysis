@@ -109,6 +109,9 @@ velocity_controller = ImprovedVelocityController(
     max_angle_of_attack=np.deg2rad(10),
 )
 
+brakes_deployed = True
+wings_deployed = False
+wings_swept = True
 landed = False
 turn = True
 spiral = False
@@ -158,15 +161,20 @@ while not landed:
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
-    # alpha = 0
-
-    ########### Turn Implementation ##########
+    
+    if current_state['time'] > 5 and not wings_deployed:
+        wings_deployed = True
+        brakes_deployed = False
+        print(f"Stabilized, deploying wings, {current_state['time']:.1f}s")
+    if mach < 0.7 and mach < states['mach'][-1] and wings_swept and wings_deployed:
+        sweep, Ar_wing = update_sweep(0)
+        wings_swept = False
+        print(f"Wings fully deployed, {current_state['time']:.1f}s")
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
         turn = False
         print(f"Backtrack turn completed, {current_state['time']:.1f}s")
     if current_state['x'] <= 0 and not spiral and not landing_sequence: # Once at 0 x distance, start the spiral down
         spiral = True
-        sweep, Ar_wing = update_sweep(0)
         print(f"Spiral started, {current_state['time']:.1f}s")
     if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
@@ -177,7 +185,7 @@ while not landed:
         spiral = False
 
     alpha_deg = np.rad2deg(alpha)
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp, brakes_deployed)
 
     horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
     if turn or spiral:

@@ -76,7 +76,7 @@ def wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp, chord=0.13, w
     return (L, D, M)
 
 
-def brakes(altitude, velocity, S=0.01 * 4):
+def fin_brakes(altitude, velocity, S=0.01 * 4):
     _, density, _ = get_isa(altitude)
     flat_plate_cd = 1.28
     return 0.5 * density * velocity**2 * flat_plate_cd * S
@@ -102,7 +102,10 @@ def get_forces(altitude, velocity, alpha, delta, clinterp, cdinterp, cminterp, b
     wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp)
     fin_normal, fin_moment = fins(altitude, velocity, delta)
     if brakes:
-        fin_drag = brakes(altitude, velocity)
+        fin_drag = fin_brakes(altitude, velocity)
+        wing_lift = 0
+        wing_drag = 0
+        wing_moment = 0
     else:
         fin_drag = 0
 
