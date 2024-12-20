@@ -132,7 +132,6 @@ landing_sequence = False
 wing_airfoil = "kc135"
 clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
 
-
 def initialize_states():
     # Set initial conditions
     states['time'].append(0)
@@ -256,7 +255,7 @@ while not landed:
         landed = True
 
 print("\n##################################")
-print(f"Simulation time: {perf_counter() - start}\n")
+print(f"Simulation time: {perf_counter() - start:.2f}\n")
 
 print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
