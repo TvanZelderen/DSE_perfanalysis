@@ -66,13 +66,10 @@ else:
     Ar_wing = (effective_wingspan**2 / S_wing)
 
 def update_sweep(sweep: int):
-    wing_sweep_angle = np.deg2rad(sweep)
-    effective_wingspan = winglength * np.cos(wing_sweep_angle)
-    if S_wing == 0:
-        Ar_wing = 0
-    else:
-        Ar_wing = (effective_wingspan**2 / S_wing)
-
+    sweep = np.deg2rad(sweep)
+    effective_wingspan = winglength * np.cos(sweep)
+    Ar_wing = (effective_wingspan**2 / S_wing)
+    return sweep, Ar_wing
 
 S_fin = finspan * (finchord_root + finchord_tip) / 2
 if S_fin == 0:
@@ -115,9 +112,6 @@ velocity_controller = ImprovedVelocityController(
 landed = False
 turn = True
 spiral = False
-max_bank_angle = np.deg2rad(45)
-
-landing_angle = np.deg2rad(15)
 landing_sequence = False
 
 wing_airfoil = "kc135"
@@ -170,15 +164,15 @@ while not landed:
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
         turn = False
-        print("Backtrack turn completed")
+        print(f"Backtrack turn completed, {current_state['time']:.1f}s")
     if current_state['x'] <= 0 and not spiral and not landing_sequence: # Once at 0 x distance, start the spiral down
         spiral = True
-        print("Spiral started")
+        sweep, Ar_wing = update_sweep(0)
+        print(f"Spiral started, {current_state['time']:.1f}s")
     if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
         landing_sequence = True
-        update_sweep(0)
         print(sweep)
-        print("Landing sequence started")
+        print(f"Landing sequence started, {current_state['time']:.1f}s")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
         alpha = np.deg2rad(8)

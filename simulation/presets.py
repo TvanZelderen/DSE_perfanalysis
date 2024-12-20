@@ -4,7 +4,7 @@ dt = 0.01  # Timestep
 dalpha = 0.5  # Alpha step
 alpha_range = np.arange(-10, 15, dalpha)
 ############  Launch Ring Characteristics  ##########
-mass = 20
+mass = 33
 diameter = 0.29
 radius = diameter / 2
 L_body = 0.8
@@ -36,8 +36,9 @@ altitude = 27000
 distance = 16000
 velocity = 200
 
-
-
+############  Angles  ############
+max_bank_angle = np.deg2rad(45)
+landing_angle = np.deg2rad(9)
 
 
 
