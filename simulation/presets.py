@@ -1,6 +1,8 @@
 import numpy as np
 
-dt = 0.01
+dt = 0.01  # Timestep
+dalpha = 0.5  # Alpha step
+alpha_range = np.arange(-10, 15, dalpha)
 ############  Launch Ring Characteristics  ##########
 mass = 20
 diameter = 0.29
@@ -10,22 +12,18 @@ L_nose = 1
 frontal_area = radius ** 2 * np.pi
 
 ############  Wing Characteristics  ###########
+wing_airfoil = 'kc135'
 winglength = 1
-
 wingchord_root = 0.13
 wingchord_tip = 0.13
 sweep = 45   # degrees
-# effective_span = np.cos(np.deg2rad(sweep)) * winglength
-
 e = 0.65
 
 ############  Fin Characteristics  ###########
+fin_airfoil = 'naca0009'
 finspan = 0.1
 finchord_root = 0.1
 finchord_tip = 0.05
-
-S_fin = (finchord_root + finchord_tip) * finspan / 2
-Ar_fin = finspan ** 2 / S_fin
 
 ############  Physics and Atmosphere ###########
 G = 9.80665

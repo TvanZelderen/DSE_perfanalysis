@@ -3,7 +3,9 @@ import pandas as pd
 from scipy.interpolate import CubicSpline
 import numpy as np
 from utils import get_isa, mach_number, get_reynolds_number
-from airfoil import f_airfoil
+from time import perf_counter
+from presets import wing_airfoil, dalpha
+
 
 
 def csv2df():
@@ -27,47 +29,51 @@ def extract_cd_cl(df):
     return mach, cd_zero, cda_body, cla_body
 
 
-def interpolate(df=csv2df()):
-    mach, cd_zero, cda_body, cla_body = extract_cd_cl(df)
-    cd_zero_interp = CubicSpline(mach, cd_zero)
-    cda_body_interp = CubicSpline(mach, cda_body)
-    cla_body_interp = CubicSpline(mach, cla_body)
-    return cd_zero_interp, cda_body_interp, cla_body_interp
+mach, cd_zero, cda_body, cla_body = extract_cd_cl(csv2df())   ####### Goed ######
+cd_zero_interp = CubicSpline(mach, cd_zero)
+cda_body_interp = CubicSpline(mach, cda_body)
+cla_body_interp = CubicSpline(mach, cla_body)
 
 
-def body_coef(mach, alpha):
-    if not -10 <= alpha <= 10:
-        raise ValueError("An angle of attack outside of the linear range was given.")
-    cd_zero_interp, cda_body_interp, cla_body_interp = interpolate()
+def body_coef(mach, alpha, cd_zero_interp = cd_zero_interp, cda_body_interp = cda_body_interp, cla_body_interp = cla_body_interp): 
+
+    if not -10 <= alpha <= 15:
+        raise ValueError("An angle of attack outside of the linear range was given.") 
     body_drag_coef = cd_zero_interp(mach) + cda_body_interp(mach) * alpha
     body_lift_coef = cla_body_interp(mach) * alpha
+
     return body_drag_coef, body_lift_coef
 
 
 def body(altitude, velocity, alpha, S=(0.29 / 2) ** 2 * np.pi):
+    # start = perf_counter()
     mach = mach_number(velocity, altitude)
     body_drag_coef, body_lift_coef = body_coef(mach, alpha)
     _, density, _ = get_isa(altitude)
     drag = 0.5 * density * velocity**2 * body_drag_coef * S
     lift = 0.5 * density * velocity**2 * body_lift_coef * S
-
+    # print(f'body() takes {perf_counter() - start}s to run')
     return lift, drag
+    
 
-
-def wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp, chord=0.13, wingspan=1, airfoil_wing="kc135"):
+def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, cminterp = cminterp, chord=0.13, wingspan=1):
+    # start = perf_counter()
     if not -10 <= alpha <= 15:
         raise ValueError("An angle of attack outside of the linear range was given.")
     _, density, temperature = get_isa(altitude)
     reynolds = get_reynolds_number(density, velocity, chord, temperature)
-    entry = int((alpha + 10) / 0.25)
+    entry = int((alpha + 10) / dalpha)
     dyn_pressure = 0.5 * density * velocity**2
     s = chord * wingspan
     wing_factor = 0.65
-    return (
-        dyn_pressure * clinterp[entry](reynolds) * s * wing_factor,
-        dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor,
-        dyn_pressure * cminterp[entry](reynolds) * s * chord,
-    )
+    
+    L = dyn_pressure * clinterp[entry](reynolds) * s * wing_factor
+    D = dyn_pressure * cdinterp[entry](reynolds) * s / wing_factor
+    M = dyn_pressure * cminterp[entry](reynolds) * s * chord
+
+    # print(f'wings() takes {perf_counter() - start}s to run')
+
+    return (L, D, M)
 
 
 def brakes(altitude, velocity, S=0.01 * 4):
@@ -77,6 +83,7 @@ def brakes(altitude, velocity, S=0.01 * 4):
 
 
 def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
+    # start = perf_counter()
     # TODO: verify and change tail length
     if not -10 <= delta <= 10:
         raise ValueError(
@@ -86,12 +93,13 @@ def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
     horizontal_projection = 4 * np.sqrt(2) / 2 * S
     _, density, _ = get_isa(altitude)
     N = 0.5 * density * velocity**2 * cnδ * delta * horizontal_projection
+    # print(f'fins() takes {perf_counter() - start}s to run')
     return N, N * tail_length
 
 
-def get_forces(altitude, velocity, alpha, delta, clinterp, cdinterp, cminterp, brakes=False):
+def get_forces(altitude, velocity, alpha, delta, brakes=False):
     body_lift, body_drag = body(altitude, velocity, alpha)
-    wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp)
+    wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha)
     fin_normal, fin_moment = fins(altitude, velocity, delta)
     if brakes:
         fin_drag = brakes(altitude, velocity)
