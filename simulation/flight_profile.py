@@ -121,7 +121,7 @@ landing_angle = np.deg2rad(15)
 landing_sequence = False
 
 wing_airfoil = "kc135"
-clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil)
+clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil, Ar = Ar_wing, e = e, wing = True)
 
 def initialize_states():
     # Set initial conditions
@@ -168,7 +168,7 @@ while not landed:
     # alpha = 0
     alpha_deg = np.rad2deg(alpha)
     
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0)
+    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp)
 
     ########### Turn Implementation ##########
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance

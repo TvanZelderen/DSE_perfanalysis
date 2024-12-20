@@ -56,7 +56,7 @@ def body(altitude, velocity, alpha, S=(0.29 / 2) ** 2 * np.pi):
     return lift, drag
     
 
-def wings(altitude, velocity, alpha, clinterp = clinterp, cdinterp = cdinterp, cminterp = cminterp, chord=0.13, wingspan=1):
+def wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp, chord=0.13, wingspan=1):
     # start = perf_counter()
     if not -10 <= alpha <= 15:
         raise ValueError("An angle of attack outside of the linear range was given.")
@@ -97,9 +97,9 @@ def fins(altitude, velocity, delta, tail_length=0.6, S=0.01):
     return N, N * tail_length
 
 
-def get_forces(altitude, velocity, alpha, delta, brakes=False):
+def get_forces(altitude, velocity, alpha, delta, clinterp, cdinterp, cminterp, brakes=False):
     body_lift, body_drag = body(altitude, velocity, alpha)
-    wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha)
+    wing_lift, wing_drag, wing_moment = wings(altitude, velocity, alpha, clinterp, cdinterp, cminterp)
     fin_normal, fin_moment = fins(altitude, velocity, delta)
     if brakes:
         fin_drag = brakes(altitude, velocity)
