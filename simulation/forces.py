@@ -116,7 +116,7 @@ def get_forces(altitude, velocity, alpha, delta, clinterp, cdinterp, cminterp, b
     drag = body_drag + wing_drag + fin_normal * np.sin(delta) + fin_drag
     moment = wing_moment + fin_moment
 
-    return lift, drag, moment
+    return lift, drag, moment, wing_moment
 
 def get_max_ld(altitude, velocity):
     max_ld = [0, 0]

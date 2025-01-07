@@ -185,7 +185,7 @@ while not landed:
         spiral = False
 
     alpha_deg = np.rad2deg(alpha)
-    lift, drag, moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp, brakes_deployed)
+    lift, drag, moment, wing_moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp, brakes_deployed)
 
     horizontal_speed = current_state["velocity"] * np.cos(current_state["gamma"])
     if turn or spiral:
@@ -214,7 +214,7 @@ while not landed:
     states["lift"].append(lift)
     states["drag"].append(drag)
     states["l_over_d"].append(lift/drag)
-    states['moment'].append(moment)
+    states['moment'].append(wing_moment)
 
     current_state["lift"] = states["lift"][-1]
     current_state["drag"] = states["drag"][-1]
@@ -252,15 +252,15 @@ print(f"Simulation time: {perf_counter() - start:.2f}\n")
 
 print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
+print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f}")
 print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
 
 print(f"Maximum lift: {max(states['lift']):.2f}")
 print(f"Maximum drag: {max(states['drag']):.2f}")
+print(f"Maximum wing moment: {np.max(np.abs(states['moment'])):.2f}")
 
 print(f"Maximum Mach number: {max(states['mach']):.2f}")
 print(f"Maximum dynamic pressure: {max(states['dyn_press']):.2f}")
-
-# print(f"Wing loading: {mass / S_wing}")
 
 plot_flight_states(states)
 
