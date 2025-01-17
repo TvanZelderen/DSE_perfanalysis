@@ -104,7 +104,7 @@ states = {
 }
 
 velocity_controller = ImprovedVelocityController(
-    target_velocity=100,
+    target_velocity=130,
     min_angle_of_attack=np.deg2rad(-7.5),
     max_angle_of_attack=np.deg2rad(10),
 )
@@ -151,6 +151,8 @@ initialize_states()
 print("Initialised states")
 start = perf_counter()
 
+shuttle_cock_dyn_press = 0
+
 
 while not landed: 
     current_state = {key: value[-1] for key, value in states.items()}
@@ -161,6 +163,9 @@ while not landed:
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
     alpha = velocity_controller.update(current_state["velocity"], dt)
+
+    if not wings_deployed and dyn_press > shuttle_cock_dyn_press:
+        shuttle_cock_dyn_press = dyn_press
     
     if current_state['time'] > 5 and not wings_deployed:
         wings_deployed = True
@@ -170,6 +175,7 @@ while not landed:
         sweep, Ar_wing = update_sweep(0)
         wings_swept = False
         print(f"Wings fully deployed, {current_state['time']:.1f}s")
+        print(f"Velocity: {current_state['velocity']}, altitude: {current_state['altitude']}")
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
         turn = False
         print(f"Backtrack turn completed, {current_state['time']:.1f}s")
@@ -250,17 +256,18 @@ while not landed:
 print("\n##################################")
 print(f"Simulation time: {perf_counter() - start:.2f}\n")
 
-print(f"Flight duration: {round(states['time'][-1],1)}")
-print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
-print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f}")
-print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
+print(f"Flight duration: {round(states['time'][-1],1)} s")
+print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f} m/s")
+print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f} m/s")
+print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])} m, m\n")
 
-print(f"Maximum lift: {max(states['lift']):.2f}")
-print(f"Maximum drag: {max(states['drag']):.2f}")
-print(f"Maximum wing moment: {np.max(np.abs(states['moment'])):.2f}")
+print(f"Maximum lift: {max(states['lift']):.2f} N")
+print(f"Maximum drag: {max(states['drag']):.2f} N")
+print(f"Maximum wing moment: {np.max(np.abs(states['moment'])):.2f} Nm")
 
-print(f"Maximum Mach number: {max(states['mach']):.2f}")
-print(f"Maximum dynamic pressure: {max(states['dyn_press']):.2f}")
+print(f"Maximum Mach number: {max(states['mach']):.2f} -")
+print(f"Maximum dynamic pressure: {max(states['dyn_press']):.2f} N/m^2")
+print(f"Maximum shuttlecock dynamic pressure: {shuttle_cock_dyn_press:.2f} N/m^2")
 
 plot_flight_states(states)
 
