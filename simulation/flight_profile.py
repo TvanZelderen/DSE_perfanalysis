@@ -30,7 +30,7 @@ def flight_derivatives(state, params):
     # Calculate derivatives using the given equations
     V_dot = (-D - W * np.sin(gamma)) / (W / g)
     gamma_dot = (L * np.cos(theta) + -W * np.cos(gamma)) / (W / g * V)
-    beta_dot = L * np.sin(theta) / (W / g * V)
+    beta_dot = L * np.sin(theta) / (W * np.cos(gamma) / g * V)
     return np.array([V_dot, gamma_dot, beta_dot])
 
 # Take a step using RK4
@@ -57,7 +57,7 @@ def rk4_step(state_0, derivatives_func, params, dt):
 
 
 
-effective_wingspan = winglength * np.cos(sweep)
+effective_wingspan = winglength * np.cos(np.deg2rad(sweep))
 S_wing = effective_wingspan * wingchord_root
 
 if S_wing == 0:
@@ -163,15 +163,12 @@ while not landed:
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
-<<<<<<< HEAD
     if not flare:
         alpha = velocity_controller.update(current_state["velocity"], dt)
-=======
-    alpha = velocity_controller.update(current_state["velocity"], dt)
+    # alpha = velocity_controller.update(current_state["velocity"], dt)
 
     if not wings_deployed and dyn_press > shuttle_cock_dyn_press:
         shuttle_cock_dyn_press = dyn_press
->>>>>>> c86fdd9f3cb88dcdd71a80890c954e87642dde5b
     
     if current_state['time'] > 5 and not wings_deployed:
         wings_deployed = True
@@ -193,7 +190,7 @@ while not landed:
         print(f"Landing sequence started, {current_state['time']:.1f}s")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-        alpha = np.deg2rad(2.6)
+        alpha = np.deg2rad(1)
         spiral = False
     if np.sqrt(current_state['x']**2 + current_state['y']**2) <= 500 and not flare:
         print(f"flare started, {current_state['time']:.1f}s")
@@ -213,8 +210,8 @@ while not landed:
             current_state['theta'] = max_bank_angle
     elif flare:
         current_state['theta'] = 0
-        if current_state['altitude'] <= 330: 
-            alpha = np.deg2rad(9)
+        if current_state['altitude'] <= 100: 
+            alpha = np.deg2rad(3.5)
     else:
         current_state['theta'] = 0
     
@@ -267,24 +264,17 @@ while not landed:
     if current_state["altitude"] < 0:
         landed = True
 
-print(len(states['vertical_speed']))
-print(f"velocity at 10k: {states['vertical_speed'][61000]}")
+# print(len(states['vertical_speed']))
+# print(f"velocity at 10k: {states['vertical_speed'][61000]}")
 
 print("\n##################################")
 print(f"Simulation time: {perf_counter() - start:.2f}\n")
 
-<<<<<<< HEAD
 print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
 print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f}")
 print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
 print(f"Loac factor: {current_state['load_factor']}")
-=======
-print(f"Flight duration: {round(states['time'][-1],1)} s")
-print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f} m/s")
-print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f} m/s")
-print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])} m, m\n")
->>>>>>> c86fdd9f3cb88dcdd71a80890c954e87642dde5b
 
 print(f"Maximum lift: {max(states['lift']):.2f} N")
 print(f"Maximum drag: {max(states['drag']):.2f} N")

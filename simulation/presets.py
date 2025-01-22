@@ -13,10 +13,10 @@ frontal_area = radius ** 2 * np.pi
 
 ############  Wing Characteristics  ###########
 wing_airfoil = 'kc135'
-winglength = 1
+winglength = 1.2
 wingchord_root = 0.13
 wingchord_tip = 0.13
-sweep = 45   # degrees
+sweep = 65   # degrees
 e = 0.65
 
 ############  Fin Characteristics  ###########
@@ -38,7 +38,7 @@ velocity = 200
 
 ############  Angles  ############
 max_bank_angle = np.deg2rad(45)
-landing_angle = np.deg2rad(9)
+landing_angle = np.deg2rad(10)
 
 
 
