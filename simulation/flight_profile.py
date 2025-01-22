@@ -116,6 +116,7 @@ landed = False
 turn = True
 spiral = False
 landing_sequence = False
+flare = False
 
 wing_airfoil = "kc135"
 clinterp, cdinterp, cminterp = f_airfoil(wing_airfoil, Ar = Ar_wing, e = e, wing = False)
@@ -160,7 +161,8 @@ while not landed:
     dyn_press = dynamic_pressure(current_state["velocity"], current_state["altitude"])
     mach = mach_number(current_state["velocity"], current_state["altitude"])
 
-    alpha = velocity_controller.update(current_state["velocity"], dt)
+    if not flare:
+        alpha = velocity_controller.update(current_state["velocity"], dt)
     
     if current_state['time'] > 5 and not wings_deployed:
         wings_deployed = True
@@ -173,16 +175,20 @@ while not landed:
     if current_state["beta"] >= np.pi and turn: # Initial turn to 0 x distance
         turn = False
         print(f"Backtrack turn completed, {current_state['time']:.1f}s")
-    if current_state['x'] <= 0 and not spiral and not landing_sequence: # Once at 0 x distance, start the spiral down
+    if current_state['x'] <= 0 and not spiral and not landing_sequence and not flare: # Once at 0 x distance, start the spiral down
         spiral = True
         print(f"Spiral started, {current_state['time']:.1f}s")
-    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence:
+    if current_state['altitude'] <= np.tan(landing_angle) * np.sqrt(current_state['x']**2 + current_state['y']**2) and not landing_sequence and not flare:
         landing_sequence = True
         print(f"Landing sequence started, {current_state['time']:.1f}s")
     if landing_sequence:
         target_angle = np.arctan2(-current_state['y'], -current_state['x'])
-        alpha = np.deg2rad(8)
+        alpha = np.deg2rad(2.6)
         spiral = False
+    if np.sqrt(current_state['x']**2 + current_state['y']**2) <= 500 and not flare:
+        print(f"flare started, {current_state['time']:.1f}s")
+        landing_sequence = False
+        flare = True
 
     alpha_deg = np.rad2deg(alpha)
     lift, drag, moment, wing_moment = get_forces(current_state['altitude'], current_state["velocity"], alpha_deg, 0, clinterp, cdinterp, cminterp, brakes_deployed)
@@ -195,6 +201,10 @@ while not landed:
             current_state['theta'] = - max_bank_angle
         else: # Turn left
             current_state['theta'] = max_bank_angle
+    elif flare:
+        current_state['theta'] = 0
+        if current_state['altitude'] <= 330: 
+            alpha = np.deg2rad(9)
     else:
         current_state['theta'] = 0
     
@@ -236,7 +246,7 @@ while not landed:
     states["mach"].append(mach)
     states["alpha"].append(alpha)
     states["vertical_speed"].append(vertical_speed)
-    states["distance"].append(distance)
+    states["distance"].append(distance) 
     states["load_factor"].append(load_factor)
     states["x"].append(x)
     states["y"].append(y)
@@ -247,6 +257,9 @@ while not landed:
     if current_state["altitude"] < 0:
         landed = True
 
+print(len(states['vertical_speed']))
+print(f"velocity at 10k: {states['vertical_speed'][61000]}")
+
 print("\n##################################")
 print(f"Simulation time: {perf_counter() - start:.2f}\n")
 
@@ -254,6 +267,7 @@ print(f"Flight duration: {round(states['time'][-1],1)}")
 print(f"Vertical speed at touchdown: {current_state['vertical_speed']:.2f}")
 print(f"Horizontal speed at touchdown: {current_state['velocity'] * np.cos(current_state['gamma']):.2f}")
 print(f"Position at touchdown: {round(current_state['x']), round(current_state['y'])}\n")
+print(f"Loac factor: {current_state['load_factor']}")
 
 print(f"Maximum lift: {max(states['lift']):.2f}")
 print(f"Maximum drag: {max(states['drag']):.2f}")
